@@ -1,17 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Каталог тварин</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-  <!-- Шапка з навігацією та пошуком -->
-  <!-- Блок фільтрів за видом/розміром -->
-  <!-- Список карток тварин -->
-  <!-- Блок деталей обраної тварини (догляд) -->
-  <!-- Підвал -->
-  <script src="js/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Каталог тварин</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Каталог тварин</h1>
+      <nav>
+        <a href="#cats">Коти</a>
+        <a href="#dogs">Собаки</a>
+        <a href="#fish">Акваріумні риби</a>
+      </nav>
+    </header>
+
+    <main>
+      <section id="filters">
+        <h2>Фільтри</h2>
+        <form>
+          <label for="species-select">Вид тварини</label>
+          <select id="species-select" name="species">
+            <option value="all">Усі види</option>
+            <option value="cat">Коти</option>
+            <option value="dog">Собаки</option>
+            <option value="fish">Риби</option>
+          </select>
+
+          <label for="size-select">Розмір</label>
+          <select id="size-select" name="size">
+            <option value="all">Будь-який</option>
+            <option value="small">Малий</option>
+            <option value="medium">Середній</option>
+            <option value="large">Великий</option>
+          </select>
+        </form>
+      </section>
+
+      <section id="animals">
+        <h2>Тварини</h2>
+
+        <article id="cats">
+          <h3>Британська короткошерста</h3>
+          <img
+            src="assets/img/cat-british.jpg"
+            alt="Британська короткошерста кішка сірого забарвлення"
+          />
+          <p>
+            Спокійна й доброзичлива порода, підходить для квартирного утримання.
+          </p>
+        </article>
+
+        <article id="dogs">
+          <h3>Лабрадор-ретривер</h3>
+          <img
+            src="assets/img/dog-labrador.jpg"
+            alt="Лабрадор-ретривер палевого забарвлення"
+          />
+          <p>
+            Активна порода, потребує щоденних прогулянок і фізичних навантажень.
+          </p>
+        </article>
+
+        <article id="fish">
+          <h3>Золота рибка</h3>
+          <img
+            src="assets/img/fish-goldfish.jpg"
+            alt="Золота рибка в акваріумі"
+          />
+          <p>Невибаглива акваріумна риба, підходить для початківців.</p>
+        </article>
+      </section>
+    </main>
+
+    <aside>
+      <h2>Догляд за обраною твариною</h2>
+      <p>
+        Оберіть тварину зі списку вище, щоб переглянути рекомендації щодо
+        годування, утримання та ветеринарного нагляду.
+      </p>
+    </aside>
+
+    <footer>
+      <p>Навчальний проєкт. &copy; 2026</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+  </body>
 </html>
