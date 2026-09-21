@@ -1,1 +1,330 @@
-/* Стилі для проєкту "Каталог тварин" */
+/* ---------- Reset & base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #fff8e7;
+  --surface: #ffffff;
+  --sand: #f3e6bf;
+  --text: #2b3a1a;
+  --muted: #6f7757;
+  --green: #4f7942;
+  --green-dark: #395930;
+
+  --cat: #d9761f;
+  --dog: #7cb342;
+  --fish: #4f8a6d;
+  --bird: #c9a227;
+  --rodent: #8b5e34;
+  --reptile: #6b8e4e;
+
+  --font-display: "Baloo 2", system-ui, sans-serif;
+  --font-body: "Nunito", system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text);
+  background-color: var(--bg);
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid var(--green-dark);
+  outline-offset: 2px;
+}
+
+/* ---------- Header ---------- */
+header {
+  position: relative;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='%234f7942' fill-opacity='0.10'%3E%3Cellipse cx='22' cy='38' rx='10' ry='12'/%3E%3Cellipse cx='10' cy='20' rx='4.5' ry='5.5'/%3E%3Cellipse cx='22' cy='13' rx='4.5' ry='5.5'/%3E%3Cellipse cx='34' cy='20' rx='4.5' ry='5.5'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(135deg, #ffe9b0 0%, #fff3d6 60%);
+  padding: 32px 24px 24px;
+  border-bottom: 4px solid var(--green);
+}
+
+header h1 {
+  margin: 0 0 16px 0;
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  color: var(--green-dark);
+}
+
+header nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+header nav a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  background-color: var(--surface);
+  border: 2px solid var(--sand);
+  font-weight: 700;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+header nav a:hover {
+  border-color: var(--green);
+}
+
+/* ---------- Layout ---------- */
+main {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+main section {
+  margin: 40px 0;
+}
+
+main section h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--green-dark);
+  margin-bottom: 16px;
+}
+
+/* ---------- Filters ---------- */
+#filters form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+  background-color: var(--sand);
+  border-radius: 14px;
+}
+
+#filters .field {
+  display: flex;
+  flex-direction: column;
+  margin-right: 12px;
+}
+
+#filters label {
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+#filters select {
+  padding: 10px 12px;
+  border: 1px solid var(--green);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+#filters select:focus-visible {
+  border-color: var(--green-dark);
+}
+
+/* ---------- Animal cards ---------- */
+.animal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 44px 20px;
+  margin-top: 24px;
+}
+
+.animal-card {
+  position: relative;
+  background-color: var(--surface);
+  border-radius: 14px;
+  padding: 56px 18px 22px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(43, 58, 26, 0.14);
+  --tilt: 0deg;
+  transform: rotate(var(--tilt));
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.animal-card:nth-child(6n + 1) {
+  --tilt: -1.4deg;
+}
+.animal-card:nth-child(6n + 2) {
+  --tilt: 1deg;
+}
+.animal-card:nth-child(6n + 3) {
+  --tilt: -0.7deg;
+}
+.animal-card:nth-child(6n + 4) {
+  --tilt: 1.3deg;
+}
+.animal-card:nth-child(6n + 5) {
+  --tilt: -1deg;
+}
+.animal-card:nth-child(6n + 6) {
+  --tilt: 0.7deg;
+}
+
+.animal-card:hover,
+.animal-card:focus-within {
+  transform: rotate(0deg) translateY(-6px);
+  box-shadow: 0 12px 22px rgba(43, 58, 26, 0.2);
+  z-index: 2;
+}
+
+.animal-card::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background-color: var(--pin, var(--green));
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.animal-card img {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid var(--surface);
+  box-shadow:
+    0 0 0 3px var(--ring, var(--muted)),
+    0 3px 8px rgba(43, 58, 26, 0.25);
+}
+
+.animal-card h3 {
+  margin: 0 0 8px 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.animal-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.species-tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.species-cat {
+  --pin: var(--cat);
+  --ring: var(--cat);
+}
+.species-cat .species-tag {
+  background-color: #fbe4cf;
+  color: var(--cat);
+}
+
+.species-dog {
+  --pin: var(--dog);
+  --ring: var(--dog);
+}
+.species-dog .species-tag {
+  background-color: #e6f2da;
+  color: var(--dog);
+}
+
+.species-fish {
+  --pin: var(--fish);
+  --ring: var(--fish);
+}
+.species-fish .species-tag {
+  background-color: #dcece5;
+  color: var(--fish);
+}
+
+.species-bird {
+  --pin: var(--bird);
+  --ring: var(--bird);
+}
+.species-bird .species-tag {
+  background-color: #f5ecd0;
+  color: var(--bird);
+}
+
+.species-rodent {
+  --pin: var(--rodent);
+  --ring: var(--rodent);
+}
+.species-rodent .species-tag {
+  background-color: #ecdfd2;
+  color: var(--rodent);
+}
+
+.species-reptile {
+  --pin: var(--reptile);
+  --ring: var(--reptile);
+}
+.species-reptile .species-tag {
+  background-color: #e2ead9;
+  color: var(--reptile);
+}
+
+/* ---------- Aside ---------- */
+aside {
+  max-width: 1000px;
+  margin: 0 auto 40px;
+  padding: 20px 24px;
+  border: 2px dashed var(--green);
+  border-radius: 14px;
+  background-color: #f2f7e9;
+}
+
+aside h2 {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--green-dark);
+}
+
+aside p {
+  margin-bottom: 0;
+  color: var(--muted);
+}
+
+/* ---------- Footer ---------- */
+footer {
+  padding: 18px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border-top: 1px solid var(--sand);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 480px) {
+  header h1 {
+    font-size: 1.75rem;
+  }
+
+  .animal-grid {
+    grid-template-columns: 1fr;
+  }
+}

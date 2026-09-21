@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Каталог тварин</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -12,7 +18,10 @@
       <nav>
         <a href="#cats">Коти</a>
         <a href="#dogs">Собаки</a>
-        <a href="#fish">Акваріумні риби</a>
+        <a href="#fish">Риби</a>
+        <a href="#birds">Папуги</a>
+        <a href="#rodents">Хом'яки</a>
+        <a href="#reptiles">Черепахи</a>
       </nav>
     </header>
 
@@ -20,57 +29,110 @@
       <section id="filters">
         <h2>Фільтри</h2>
         <form>
-          <label for="species-select">Вид тварини</label>
-          <select id="species-select" name="species">
-            <option value="all">Усі види</option>
-            <option value="cat">Коти</option>
-            <option value="dog">Собаки</option>
-            <option value="fish">Риби</option>
-          </select>
+          <div class="field">
+            <label for="species-select">Вид тварини</label>
+            <select id="species-select" name="species">
+              <option value="all">Усі види</option>
+              <option value="cat">Коти</option>
+              <option value="dog">Собаки</option>
+              <option value="fish">Риби</option>
+              <option value="bird">Папуги</option>
+              <option value="rodent">Хом'яки</option>
+              <option value="reptile">Черепахи</option>
+            </select>
+          </div>
 
-          <label for="size-select">Розмір</label>
-          <select id="size-select" name="size">
-            <option value="all">Будь-який</option>
-            <option value="small">Малий</option>
-            <option value="medium">Середній</option>
-            <option value="large">Великий</option>
-          </select>
+          <div class="field">
+            <label for="size-select">Розмір</label>
+            <select id="size-select" name="size">
+              <option value="all">Будь-який</option>
+              <option value="small">Малий</option>
+              <option value="medium">Середній</option>
+              <option value="large">Великий</option>
+            </select>
+          </div>
         </form>
       </section>
 
       <section id="animals">
         <h2>Тварини</h2>
 
-        <article id="cats">
-          <h3>Британська короткошерста</h3>
-          <img
-            src="assets/img/cat-british.jpg"
-            alt="Британська короткошерста кішка сірого забарвлення"
-          />
-          <p>
-            Спокійна й доброзичлива порода, підходить для квартирного утримання.
-          </p>
-        </article>
+        <div class="animal-grid">
+          <article id="cats" class="animal-card species-cat">
+            <span class="species-tag">Кіт</span>
+            <img
+              src="assets/img/cat-british.jpg"
+              alt="Британська короткошерста кішка сірого забарвлення"
+            />
+            <h3>Британська короткошерста</h3>
+            <p>
+              Спокійна й доброзичлива порода, підходить для квартирного
+              утримання.
+            </p>
+          </article>
 
-        <article id="dogs">
-          <h3>Лабрадор-ретривер</h3>
-          <img
-            src="assets/img/dog-labrador.jpg"
-            alt="Лабрадор-ретривер палевого забарвлення"
-          />
-          <p>
-            Активна порода, потребує щоденних прогулянок і фізичних навантажень.
-          </p>
-        </article>
+          <article id="dogs" class="animal-card species-dog">
+            <span class="species-tag">Собака</span>
+            <img
+              src="assets/img/dog-labrador.jpg"
+              alt="Лабрадор-ретривер палевого забарвлення"
+            />
+            <h3>Лабрадор-ретривер</h3>
+            <p>
+              Активна порода, потребує щоденних прогулянок і фізичних
+              навантажень.
+            </p>
+          </article>
 
-        <article id="fish">
-          <h3>Золота рибка</h3>
-          <img
-            src="assets/img/fish-goldfish.jpg"
-            alt="Золота рибка в акваріумі"
-          />
-          <p>Невибаглива акваріумна риба, підходить для початківців.</p>
-        </article>
+          <article id="fish" class="animal-card species-fish">
+            <span class="species-tag">Риба</span>
+            <img
+              src="assets/img/fish-goldfish.jpg"
+              alt="Золота рибка в акваріумі"
+            />
+            <h3>Золота рибка</h3>
+            <p>Невибаглива акваріумна риба, підходить для початківців.</p>
+          </article>
+
+          <article id="birds" class="animal-card species-bird">
+            <span class="species-tag">Папуга</span>
+            <img
+              src="assets/img/bird-budgie.jpg"
+              alt="Хвилястий папужка зеленого забарвлення"
+            />
+            <h3>Хвилястий папужка</h3>
+            <p>
+              Товариський і балакучий птах, легко звикає до рук за регулярного
+              спілкування.
+            </p>
+          </article>
+
+          <article id="rodents" class="animal-card species-rodent">
+            <span class="species-tag">Хом'як</span>
+            <img
+              src="assets/img/hamster-dzungarian.jpg"
+              alt="Джунгарський хом'як сірого забарвлення"
+            />
+            <h3>Джунгарський хом'як</h3>
+            <p>
+              Невеликий нічний гризун, якому достатньо просторої клітки й колеса
+              для бігу.
+            </p>
+          </article>
+
+          <article id="reptiles" class="animal-card species-reptile">
+            <span class="species-tag">Черепаха</span>
+            <img
+              src="assets/img/turtle-redeared.jpg"
+              alt="Червоновуха черепаха в акваріумі з сушею"
+            />
+            <h3>Червоновуха черепаха</h3>
+            <p>
+              Водно-суходільна черепаха, потребує акватерасаріум з підігрівом і
+              УФ-лампою.
+            </p>
+          </article>
+        </div>
       </section>
     </main>
 
