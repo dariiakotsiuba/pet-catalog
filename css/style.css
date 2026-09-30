@@ -38,14 +38,23 @@ a {
   color: inherit;
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 :focus-visible {
   outline: 3px solid var(--green-dark);
   outline-offset: 2px;
 }
 
-/* ---------- Header ---------- */
+/* ---------- Header (Flexbox) ---------- */
 header {
   position: relative;
+  display: flex;
+  flex-direction: column; /* мобільний: h1 над nav */
+  align-items: flex-start;
+  gap: 12px;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='%234f7942' fill-opacity='0.10'%3E%3Cellipse cx='22' cy='38' rx='10' ry='12'/%3E%3Cellipse cx='10' cy='20' rx='4.5' ry='5.5'/%3E%3Cellipse cx='22' cy='13' rx='4.5' ry='5.5'/%3E%3Cellipse cx='34' cy='20' rx='4.5' ry='5.5'/%3E%3C/g%3E%3C/svg%3E"),
     linear-gradient(135deg, #ffe9b0 0%, #fff3d6 60%);
@@ -54,9 +63,9 @@ header {
 }
 
 header h1 {
-  margin: 0 0 16px 0;
+  margin: 0;
   font-family: var(--font-display);
-  font-size: 2.25rem;
+  font-size: 1.75rem;
   color: var(--green-dark);
 }
 
@@ -80,11 +89,18 @@ header nav a:hover {
   border-color: var(--green);
 }
 
-/* ---------- Layout ---------- */
-main {
+/* ---------- Layout (Grid) ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr; /* мобільний: aside під main */
+  gap: 24px;
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 20px;
+}
+
+main {
+  min-width: 0;
 }
 
 main section {
@@ -98,11 +114,11 @@ main section h2 {
   margin-bottom: 16px;
 }
 
-/* ---------- Filters ---------- */
+/* ---------- Filters (Flexbox) ---------- */
 #filters form {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  flex-direction: column; /* мобільний: стовпчик */
+  gap: 16px;
   padding: 20px;
   background-color: var(--sand);
   border-radius: 14px;
@@ -111,7 +127,6 @@ main section h2 {
 #filters .field {
   display: flex;
   flex-direction: column;
-  margin-right: 12px;
 }
 
 #filters label {
@@ -134,10 +149,10 @@ main section h2 {
   border-color: var(--green-dark);
 }
 
-/* ---------- Animal cards ---------- */
+/* ---------- Animal cards (Grid) ---------- */
 .animal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: 1fr; /* мобільний: 1 колонка */
   gap: 44px 20px;
   margin-top: 24px;
 }
@@ -289,8 +304,8 @@ main section h2 {
 
 /* ---------- Aside ---------- */
 aside {
-  max-width: 1000px;
-  margin: 0 auto 40px;
+  align-self: start;
+  margin: 0 0 40px;
   padding: 20px 24px;
   border: 2px dashed var(--green);
   border-radius: 14px;
@@ -318,13 +333,41 @@ footer {
   border-top: 1px solid var(--sand);
 }
 
-/* ---------- Responsive ---------- */
-@media (max-width: 480px) {
-  header h1 {
-    font-size: 1.75rem;
+/* ---------- Планшет (>= 600px) ---------- */
+@media (min-width: 600px) {
+  #filters form {
+    flex-direction: row; /* фільтри в рядок */
+    flex-wrap: wrap;
+    gap: 20px;
   }
 
   .animal-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr); /* 2 колонки */
+  }
+}
+
+/* ---------- Десктоп (>= 1024px) ---------- */
+@media (min-width: 1024px) {
+  header {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 40px 24px;
+  }
+
+  .layout {
+    grid-template-columns: 3fr 1fr; /* main + aside поруч */
+    gap: 32px;
+    max-width: 1280px;
+    padding: 0 32px;
+  }
+
+  aside {
+    margin-top: 40px;
+  }
+
+  .animal-grid {
+    grid-template-columns: repeat(4, 1fr); /* 4 колонки */
   }
 }
