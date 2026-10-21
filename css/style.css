@@ -162,6 +162,13 @@ main section h2 {
   border-color: var(--green-dark);
 }
 
+/* Підсумок: кількість тварин (практична 7) */
+#pets-count {
+  margin: 0 0 8px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
 .animal-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -294,6 +301,15 @@ main section h2 {
   max-width: 34ch;
   color: var(--muted);
   font-size: var(--fs-body);
+}
+
+/* Вікові класи, які додає script.js (практична 7) */
+.animal-card.young {
+  border-bottom: 5px solid #f2b84b;
+}
+
+.animal-card.adult {
+  border-bottom: 5px solid var(--green);
 }
 
 .species-cat {

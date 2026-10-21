@@ -1,7 +1,7 @@
-// Крок 3. Перевірка підключення файлу
+// Перевірка підключення файлу
 console.log("script.js підключено");
 
-// Крок 4. Дані варіанта 12: масив тварин
+// Дані варіанта 12: масив тварин
 const animals = [
   { name: "Мурка", species: "кіт", ageYears: 1 },
   { name: "Барсик", species: "кіт", ageYears: 5 },
@@ -16,7 +16,59 @@ const animals = [
 // Тварина до цього віку (у роках) вважається молодою
 const YOUNG_LIMIT_YEARS = 2;
 
-// Стрілкова функція (крок 7): переводить вік із років у місяці
+// Довідник для оформлення карток: клас виду, підпис, розмір, фото, id для навігації
+const SPECIES_INFO = {
+  кіт: {
+    cls: "cat",
+    tag: "Кіт",
+    size: "medium",
+    sizeText: "Середній",
+    img: "assets/img/cat-british.jpg",
+    anchor: "cats",
+  },
+  собака: {
+    cls: "dog",
+    tag: "Собака",
+    size: "large",
+    sizeText: "Великий",
+    img: "assets/img/dog-labrador.jpg",
+    anchor: "dogs",
+  },
+  риба: {
+    cls: "fish",
+    tag: "Риба",
+    size: "small",
+    sizeText: "Малий",
+    img: "assets/img/fish-goldfish.jpg",
+    anchor: "fish",
+  },
+  папуга: {
+    cls: "bird",
+    tag: "Папуга",
+    size: "small",
+    sizeText: "Малий",
+    img: "assets/img/bird-budgie.jpg",
+    anchor: "birds",
+  },
+  "хом'як": {
+    cls: "rodent",
+    tag: "Хом'як",
+    size: "small",
+    sizeText: "Малий",
+    img: "assets/img/hamster-dzungarian.jpg",
+    anchor: "rodents",
+  },
+  черепаха: {
+    cls: "reptile",
+    tag: "Черепаха",
+    size: "medium",
+    sizeText: "Середній",
+    img: "assets/img/turtle-redeared.jpg",
+    anchor: "reptiles",
+  },
+};
+
+// Стрілкова функція: переводить вік із років у місяці
 const ageInMonths = (years) => years * 12;
 
 // Класифікує тварину за віком: повертає «молода» або «доросла»
@@ -28,8 +80,75 @@ function classifyByAge(animal) {
   }
 }
 
-// Цикл for...of (крок 5): виводить у консоль усіх тварин заданого виду
-// з віком у роках і місяцях та віковою категорією, а також підсумок
+// Повертає CSS-клас за віком: "young" або "adult"
+function ageClass(animal) {
+  return animal.ageYears < YOUNG_LIMIT_YEARS ? "young" : "adult";
+}
+
+// Крок 3. Вибираємо контейнер і елемент-підсумок
+const listContainer = document.querySelector("#pets-list");
+const petsCount = document.querySelector("#pets-count");
+
+// Крок 2. Динамічно видаляємо статичні картки-заглушки з практикуму 2
+document
+  .querySelectorAll("#pets-list .animal-card")
+  .forEach((card) => card.remove());
+
+// Крок 4-8. Рендер списку тварин із масиву.
+// Для кожної тварини створює <article> з мета-даними, фото, h3 (ім'я) і p (вид),
+// ставить атрибути (img.src, img.alt, data-species) та клас young/adult за віком.
+function renderPets(list) {
+  // Очищаємо контейнер перед виведенням
+  listContainer.innerHTML = "";
+  // Щоб id для навігації (#cats, #dogs…) отримала лише перша картка виду
+  const usedAnchors = new Set();
+
+  list.forEach((animal) => {
+    const info = SPECIES_INFO[animal.species];
+
+    // Картка
+    const card = document.createElement("article");
+    card.classList.add("animal-card", `species-${info.cls}`, ageClass(animal));
+    card.dataset.species = animal.species;
+    if (!usedAnchors.has(info.anchor)) {
+      card.id = info.anchor;
+      usedAnchors.add(info.anchor);
+    }
+
+    // Мета-дані: вид і розмір
+    const meta = document.createElement("div");
+    meta.classList.add("card-meta");
+    const tag = document.createElement("span");
+    tag.classList.add("species-tag");
+    tag.textContent = info.tag;
+    const size = document.createElement("span");
+    size.classList.add("size-badge", `size-${info.size}`);
+    size.textContent = info.sizeText;
+    meta.append(tag, size);
+
+    // Фото
+    const img = document.createElement("img");
+    img.src = info.img;
+    img.alt = `${info.tag} ${animal.name}, ${classifyByAge(animal)}`;
+
+    // Ім'я та вид
+    const title = document.createElement("h3");
+    title.textContent = animal.name;
+    const text = document.createElement("p");
+    text.textContent = animal.species;
+
+    card.append(meta, img, title, text);
+    listContainer.append(card);
+  });
+}
+
+// Крок 8. Викликаємо рендер одразу після оголошення
+renderPets(animals);
+
+// Крок 9. Оновлюємо підсумковий елемент поза списком
+petsCount.textContent = `Усього тварин: ${animals.length}`;
+
+// Цикл for...of: виводить у консоль усіх тварин заданого виду (з практикуму 6)
 function printBySpecies(list, species) {
   console.log(`--- Тварини виду «${species}» ---`);
   let count = 0;

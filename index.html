@@ -58,8 +58,12 @@
 
         <section id="animals">
           <h2>Тварини</h2>
+          <p id="pets-count"></p>
 
-          <div class="animal-grid">
+          <div class="animal-grid" id="pets-list">
+            <!-- Статичні картки-заглушки з практикуму 2.
+                 Скрипт видаляє їх через querySelectorAll + remove()
+                 і виводить тварин із масиву. -->
             <article id="cats" class="animal-card species-cat">
               <div class="card-meta">
                 <span class="species-tag">Кіт</span>
