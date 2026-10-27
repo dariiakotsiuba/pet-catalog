@@ -1,22 +1,75 @@
 // Перевірка підключення файлу
 console.log("script.js підключено");
 
-// Дані варіанта 12: масив тварин
+// Дані варіанта 12: масив тварин (у кожної свої фото й опис)
 const animals = [
-  { name: "Мурка", species: "кіт", ageYears: 1 },
-  { name: "Барсик", species: "кіт", ageYears: 5 },
-  { name: "Рекс", species: "собака", ageYears: 3 },
-  { name: "Бім", species: "собака", ageYears: 0.5 },
-  { name: "Золотко", species: "риба", ageYears: 2 },
-  { name: "Кеша", species: "папуга", ageYears: 1.5 },
-  { name: "Пухнастик", species: "хом'як", ageYears: 0.8 },
-  { name: "Тортілла", species: "черепаха", ageYears: 10 },
+  {
+    name: "Мурка",
+    species: "кіт",
+    ageYears: 1,
+    img: "assets/img/cat-tabby.jpg",
+    description:
+      "Грайлива молода кішка, любить ганяти м'ячик і спати на підвіконні.",
+  },
+  {
+    name: "Барсик",
+    species: "кіт",
+    ageYears: 5,
+    img: "assets/img/cat-british.jpg",
+    description: "Спокійний дорослий кіт британської породи, не любить галасу.",
+  },
+  {
+    name: "Рекс",
+    species: "собака",
+    ageYears: 3,
+    img: "assets/img/dog-labrador.jpg",
+    description: "Активний лабрадор, потребує щоденних прогулянок і ігор.",
+  },
+  {
+    name: "Бім",
+    species: "собака",
+    ageYears: 0.5,
+    img: "assets/img/dog-puppy.jpg",
+    description: "Цікаве цуценя, якого ще треба привчати до команд.",
+  },
+  {
+    name: "Золотко",
+    species: "риба",
+    ageYears: 2,
+    img: "assets/img/fish-goldfish.jpg",
+    description: "Спокійна золота рибка, яка полюбляє просторий акваріум.",
+  },
+  {
+    name: "Кеша",
+    species: "папуга",
+    ageYears: 1.5,
+    img: "assets/img/bird-budgie.jpg",
+    description:
+      "Балакучий хвилястий папужка, вже вміє повторювати кілька слів.",
+  },
+  {
+    name: "Пухнастик",
+    species: "хом'як",
+    ageYears: 0.8,
+    img: "assets/img/hamster-dzungarian.jpg",
+    description:
+      "Маленький джунгарський хом'як, активний уночі й любить колесо.",
+  },
+  {
+    name: "Тортілла",
+    species: "черепаха",
+    ageYears: 10,
+    img: "assets/img/turtle-redeared.jpg",
+    description:
+      "Доросла червоновуха черепаха, любить гріти спинку під лампою.",
+  },
 ];
 
 // Тварина до цього віку (у роках) вважається молодою
 const YOUNG_LIMIT_YEARS = 2;
 
-// Довідник для оформлення карток: клас виду, підпис, розмір, фото, id для навігації
+// Довідник для оформлення карток: клас виду, підпис, розмір, фото за замовчуванням,
+// загальний опис (для нових тварин із форми) і id для навігації
 const SPECIES_INFO = {
   кіт: {
     cls: "cat",
@@ -25,6 +78,8 @@ const SPECIES_INFO = {
     sizeText: "Середній",
     img: "assets/img/cat-british.jpg",
     anchor: "cats",
+    description:
+      "Спокійна й доброзичлива тварина, підходить для квартирного утримання.",
   },
   собака: {
     cls: "dog",
@@ -33,6 +88,8 @@ const SPECIES_INFO = {
     sizeText: "Великий",
     img: "assets/img/dog-labrador.jpg",
     anchor: "dogs",
+    description:
+      "Активна тварина, потребує щоденних прогулянок і фізичних навантажень.",
   },
   риба: {
     cls: "fish",
@@ -41,6 +98,7 @@ const SPECIES_INFO = {
     sizeText: "Малий",
     img: "assets/img/fish-goldfish.jpg",
     anchor: "fish",
+    description: "Невибаглива акваріумна риба, підходить для початківців.",
   },
   папуга: {
     cls: "bird",
@@ -49,6 +107,8 @@ const SPECIES_INFO = {
     sizeText: "Малий",
     img: "assets/img/bird-budgie.jpg",
     anchor: "birds",
+    description:
+      "Товариський і балакучий птах, легко звикає до рук за регулярного спілкування.",
   },
   "хом'як": {
     cls: "rodent",
@@ -57,6 +117,8 @@ const SPECIES_INFO = {
     sizeText: "Малий",
     img: "assets/img/hamster-dzungarian.jpg",
     anchor: "rodents",
+    description:
+      "Невеликий нічний гризун, якому достатньо просторої клітки й колеса для бігу.",
   },
   черепаха: {
     cls: "reptile",
@@ -65,6 +127,8 @@ const SPECIES_INFO = {
     sizeText: "Середній",
     img: "assets/img/turtle-redeared.jpg",
     anchor: "reptiles",
+    description:
+      "Водно-суходільна черепаха, потребує акватераріум з підігрівом і УФ-лампою.",
   },
 };
 
@@ -95,7 +159,7 @@ document
   .forEach((card) => card.remove());
 
 // Крок 4-8. Рендер списку тварин із масиву.
-// Для кожної тварини створює <article> з мета-даними, фото, h3 (ім'я) і p (вид),
+// Для кожної тварини створює <article> з мета-даними, фото, h3 (ім'я) і p (опис),
 // ставить атрибути (img.src, img.alt, data-species) та клас young/adult за віком.
 function renderPets(list) {
   // Очищаємо контейнер перед виведенням
@@ -126,27 +190,21 @@ function renderPets(list) {
     size.textContent = info.sizeText;
     meta.append(tag, size);
 
-    // Фото
+    // Фото: своє, а якщо його немає - стандартне для виду
     const img = document.createElement("img");
-    img.src = info.img;
+    img.src = animal.img || info.img;
     img.alt = `${info.tag} ${animal.name}, ${classifyByAge(animal)}`;
 
-    // Ім'я та вид
+    // Ім'я та опис: свій, а якщо його немає - загальний для виду
     const title = document.createElement("h3");
     title.textContent = animal.name;
     const text = document.createElement("p");
-    text.textContent = animal.species;
+    text.textContent = animal.description || info.description;
 
     card.append(meta, img, title, text);
     listContainer.append(card);
   });
 }
-
-// Крок 8. Викликаємо рендер одразу після оголошення
-renderPets(animals);
-
-// Крок 9. Оновлюємо підсумковий елемент поза списком
-petsCount.textContent = `Усього тварин: ${animals.length}`;
 
 // Цикл for...of: виводить у консоль усіх тварин заданого виду (з практикуму 6)
 function printBySpecies(list, species) {
@@ -177,7 +235,101 @@ function printAll(list) {
   }
 }
 
-// Виклики з реальними даними
+// ===== Практична 8: події, форма, валідація =====
+
+// Елементи фільтрів
+const speciesFilter = document.querySelector("#species-select");
+const sizeFilter = document.querySelector("#size-select");
+const filtersForm = document.querySelector("#filters form");
+
+// Елементи форми додавання
+const petForm = document.querySelector("#pet-form");
+const nameInput = document.querySelector("#pet-name");
+const speciesInput = document.querySelector("#pet-species");
+const ageInput = document.querySelector("#pet-age");
+const ageError = document.querySelector("#age-error");
+
+// Повертає тварин, що відповідають обраним фільтрам виду й розміру
+function getFilteredPets() {
+  return animals.filter((animal) => {
+    const info = SPECIES_INFO[animal.species];
+    const speciesOk =
+      speciesFilter.value === "all" || info.cls === speciesFilter.value;
+    const sizeOk = sizeFilter.value === "all" || info.size === sizeFilter.value;
+    return speciesOk && sizeOk;
+  });
+}
+
+// Перемальовує список з урахуванням фільтрів і оновлює підсумок
+function updateView() {
+  const list = getFilteredPets();
+  renderPets(list);
+  petsCount.textContent = `Показано: ${list.length} з ${animals.length}`;
+}
+
+// Форма фільтрів не має надсилатися як звичайна форма
+filtersForm.addEventListener("submit", (event) => event.preventDefault());
+
+// Друга подія варіанта: change на select виду фільтрує список
+speciesFilter.addEventListener("change", updateView);
+sizeFilter.addEventListener("change", updateView);
+
+// Додаткова валідація: input на ageYears (від'ємне або більше 50)
+ageInput.addEventListener("input", () => {
+  const value = ageInput.value;
+
+  if (value === "") {
+    ageInput.setCustomValidity("");
+  } else if (Number(value) < 0) {
+    ageInput.setCustomValidity("Вік не може бути від'ємним");
+  } else if (Number(value) > 50) {
+    ageInput.setCustomValidity("Вік завеликий: максимум 50 років");
+  } else {
+    ageInput.setCustomValidity("");
+  }
+
+  // Показуємо повідомлення поруч із полем
+  ageError.textContent = ageInput.validationMessage;
+});
+
+// Знімаємо помилку імені, коли користувач починає виправляти
+nameInput.addEventListener("input", () => nameInput.setCustomValidity(""));
+
+// Обробка надсилання форми: без перезавантаження сторінки
+petForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const name = nameInput.value.trim();
+  if (name === "") {
+    // required пропускає рядок із самих пробілів, тому перевіряємо вручну
+    nameInput.setCustomValidity("Введіть ім'я тварини");
+    nameInput.reportValidity();
+    return;
+  }
+
+  // Новий об'єкт тієї самої форми, що й елементи масиву
+  // (фото й опис підставляться автоматично зі SPECIES_INFO)
+  const newPet = {
+    name: name,
+    species: speciesInput.value,
+    ageYears: Number(ageInput.value),
+  };
+
+  animals.push(newPet);
+
+  // Скидаємо фільтри, щоб новий запис точно було видно
+  speciesFilter.value = "all";
+  sizeFilter.value = "all";
+
+  updateView();
+  petForm.reset();
+  ageError.textContent = "";
+});
+
+// Перший показ списку
+updateView();
+
+// Виклики з реальними даними (з практикуму 6)
 printAll(animals);
 printBySpecies(animals, "кіт");
 printBySpecies(animals, "собака");

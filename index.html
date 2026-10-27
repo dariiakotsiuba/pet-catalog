@@ -56,6 +56,44 @@
           </form>
         </section>
 
+        <section id="add-pet">
+          <h2>Додати тварину</h2>
+          <form id="pet-form">
+            <div class="field">
+              <label for="pet-name">Ім'я</label>
+              <input type="text" id="pet-name" name="name" required />
+            </div>
+
+            <div class="field">
+              <label for="pet-species">Вид</label>
+              <select id="pet-species" name="species" required>
+                <option value="">Оберіть вид</option>
+                <option value="кіт">Кіт</option>
+                <option value="собака">Собака</option>
+                <option value="риба">Риба</option>
+                <option value="папуга">Папуга</option>
+                <option value="хом'як">Хом'як</option>
+                <option value="черепаха">Черепаха</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="pet-age">Вік (років)</label>
+              <input
+                type="number"
+                id="pet-age"
+                name="ageYears"
+                min="0"
+                step="0.1"
+                required
+              />
+              <span id="age-error" class="error" role="alert"></span>
+            </div>
+
+            <button type="submit">Додати</button>
+          </form>
+        </section>
+
         <section id="animals">
           <h2>Тварини</h2>
           <p id="pets-count"></p>
@@ -164,13 +202,9 @@
         <h2>Догляд за обраною твариною</h2>
         <p>
           Оберіть тварину зі списку вище, щоб переглянути рекомендації щодо
-          годування, утримання та ветеринарного нагляду.
+          годування, утримання та ветеринарного
         </p>
       </aside>
     </div>
-
-    <footer>
-      <p>Навчальний проєкт. &copy; 2026</p>
-    </footer>
   </body>
 </html>
