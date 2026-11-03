@@ -408,6 +408,38 @@ main section h2 {
   color: #4a6b32;
 }
 
+/* Практична 9: клієнт для API */
+#random-dog button {
+  padding: 10px 24px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background-color: var(--green-dark);
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-body);
+  cursor: pointer;
+}
+
+#random-dog button:hover:not(:disabled) {
+  background-color: var(--green);
+}
+
+#random-dog button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+#dog-loading {
+  margin: 12px 0 0;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+#random-dog .animal-grid {
+  grid-template-columns: minmax(0, 320px);
+}
+
 aside {
   align-self: start;
   margin: 0 0 40px;
@@ -455,6 +487,10 @@ footer {
   .animal-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  #random-dog .animal-grid {
+    grid-template-columns: minmax(0, 320px);
+  }
 }
 
 @media (min-width: 1024px) {
@@ -483,5 +519,9 @@ footer {
 
   .animal-grid {
     grid-template-columns: repeat(4, 1fr);
+  }
+
+  #random-dog .animal-grid {
+    grid-template-columns: minmax(0, 320px);
   }
 }

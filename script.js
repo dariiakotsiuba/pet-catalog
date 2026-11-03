@@ -161,9 +161,11 @@ document
 // Крок 4-8. Рендер списку тварин із масиву.
 // Для кожної тварини створює <article> з мета-даними, фото, h3 (ім'я) і p (опис),
 // ставить атрибути (img.src, img.alt, data-species) та клас young/adult за віком.
-function renderPets(list) {
+// Практична 9: функція вміє малювати в будь-який контейнер (container),
+// а id для навігації (#cats, #dogs…) ставить лише коли withAnchors = true.
+function renderPets(list, container = listContainer, withAnchors = true) {
   // Очищаємо контейнер перед виведенням
-  listContainer.innerHTML = "";
+  container.innerHTML = "";
   // Щоб id для навігації (#cats, #dogs…) отримала лише перша картка виду
   const usedAnchors = new Set();
 
@@ -172,9 +174,13 @@ function renderPets(list) {
 
     // Картка
     const card = document.createElement("article");
-    card.classList.add("animal-card", `species-${info.cls}`, ageClass(animal));
+    card.classList.add("animal-card", `species-${info.cls}`);
+    // Вікова класифікація лише якщо вік відомий (для тварин з API його немає)
+    if (animal.ageYears !== undefined) {
+      card.classList.add(ageClass(animal));
+    }
     card.dataset.species = animal.species;
-    if (!usedAnchors.has(info.anchor)) {
+    if (withAnchors && !usedAnchors.has(info.anchor)) {
       card.id = info.anchor;
       usedAnchors.add(info.anchor);
     }
@@ -193,7 +199,10 @@ function renderPets(list) {
     // Фото: своє, а якщо його немає - стандартне для виду
     const img = document.createElement("img");
     img.src = animal.img || info.img;
-    img.alt = `${info.tag} ${animal.name}, ${classifyByAge(animal)}`;
+    img.alt =
+      animal.ageYears !== undefined
+        ? `${info.tag} ${animal.name}, ${classifyByAge(animal)}`
+        : `${info.tag} ${animal.name}`;
 
     // Ім'я та опис: свій, а якщо його немає - загальний для виду
     const title = document.createElement("h3");
@@ -202,7 +211,7 @@ function renderPets(list) {
     text.textContent = animal.description || info.description;
 
     card.append(meta, img, title, text);
-    listContainer.append(card);
+    container.append(card);
   });
 }
 
@@ -326,8 +335,81 @@ petForm.addEventListener("submit", (event) => {
   ageError.textContent = "";
 });
 
+// ===== Практична 9: клієнт для API (fetch/AJAX) =====
+
+// Адреса ендпоінта винесена в константу (крок 3)
+const DOG_API_URL = "https://dog.ceo/api/breeds/image/random";
+
+const dogList = document.querySelector("#dog-list");
+const dogLoading = document.querySelector("#dog-loading");
+const dogError = document.querySelector("#dog-error");
+const dogRefresh = document.querySelector("#dog-refresh");
+
+// Показує/ховає стан завантаження і блокує кнопку на час запиту
+function showLoading(isLoading) {
+  dogLoading.hidden = !isLoading;
+  dogRefresh.disabled = isLoading;
+}
+
+// Виводить зрозуміле повідомлення користувачу (порожній рядок - прибрати)
+function showError(message) {
+  dogError.textContent = message;
+}
+
+// Запит до Dog CEO API (https://dog.ceo/dog-api/): випадкове фото собаки.
+// Перевіряє HTTP-статус (response.ok) і окремо поле status === "success",
+// бо API інколи повертає 200 зі status: "error".
+async function loadDog() {
+  showError("");
+  showLoading(true);
+
+  try {
+    const response = await fetch(DOG_API_URL);
+
+    // fetch не вважає 404/500 помилкою, тому перевіряємо вручну
+    if (!response.ok) {
+      throw new Error(`Сервер відповів кодом ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(data);
+
+    // Окрема перевірка поля status (може бути 200 зі status: "error")
+    if (data.status !== "success") {
+      throw new Error(`API повернуло status: ${data.status}`);
+    }
+
+    // URL має вигляд .../breeds/hound-afghan/xxx.jpg - беремо породу зі шляху
+    const breed = data.message.split("/")[4].replace("-", " ");
+
+    // Підганяємо відповідь API під форму об'єкта з масиву animals
+    const dog = {
+      name: "Випадкова собака",
+      species: "собака",
+      img: data.message,
+      description: `Порода (за даними API): ${breed}.`,
+    };
+
+    // Та сама функція рендеру, що й для списку тварин
+    renderPets([dog], dogList, false);
+  } catch (error) {
+    // Користувачу - зрозуміле повідомлення, розробнику - деталі в консоль
+    showError("Не вдалося завантажити фото собаки. Спробуйте пізніше.");
+    console.error(error);
+  } finally {
+    // Ховаємо індикатор і за успіху, і за помилки
+    showLoading(false);
+  }
+}
+
+// Кнопка «Оновити» - повторний запит без перезавантаження сторінки
+dogRefresh.addEventListener("click", loadDog);
+
 // Перший показ списку
 updateView();
+
+// Перше завантаження фото з API
+loadDog();
 
 // Виклики з реальними даними (з практикуму 6)
 printAll(animals);
