@@ -11,6 +11,9 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/style.css" />
+    <!-- Практична 10: Vue 3, глобальна збірка з CDN (без npm і збірки).
+         Підключається без defer, тому до запуску script.js Vue вже доступний. -->
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
     <script src="script.js" defer></script>
   </head>
   <body>
@@ -100,109 +103,18 @@
           <button type="button" id="dog-refresh">Оновити</button>
           <p id="dog-loading" hidden>Завантаження…</p>
           <p id="dog-error" class="error" role="alert"></p>
+          <!-- Практична 10: сюди монтується Vue-застосунок RandomDog -->
           <div class="animal-grid" id="dog-list"></div>
         </section>
 
         <section id="animals">
           <h2>Тварини</h2>
-          <p id="pets-count"></p>
-
-          <div class="animal-grid" id="pets-list">
-            <!-- Статичні картки-заглушки з практикуму 2.
-                 Скрипт видаляє їх через querySelectorAll + remove()
-                 і виводить тварин із масиву. -->
-            <article id="cats" class="animal-card species-cat">
-              <div class="card-meta">
-                <span class="species-tag">Кіт</span>
-                <span class="size-badge size-medium">Середній</span>
-              </div>
-              <img
-                src="assets/img/cat-british.jpg"
-                alt="Британська короткошерста кішка сірого забарвлення"
-              />
-              <h3>Британська короткошерста</h3>
-              <p>
-                Спокійна й доброзичлива порода, підходить для квартирного
-                утримання.
-              </p>
-            </article>
-
-            <article id="dogs" class="animal-card species-dog">
-              <div class="card-meta">
-                <span class="species-tag">Собака</span>
-                <span class="size-badge size-large">Великий</span>
-              </div>
-              <img
-                src="assets/img/dog-labrador.jpg"
-                alt="Лабрадор-ретривер палевого забарвлення"
-              />
-              <h3>Лабрадор-ретривер</h3>
-              <p>
-                Активна порода, потребує щоденних прогулянок і фізичних
-                навантажень.
-              </p>
-            </article>
-
-            <article id="fish" class="animal-card species-fish">
-              <div class="card-meta">
-                <span class="species-tag">Риба</span>
-                <span class="size-badge size-small">Малий</span>
-              </div>
-              <img
-                src="assets/img/fish-goldfish.jpg"
-                alt="Золота рибка в акваріумі"
-              />
-              <h3>Золота рибка</h3>
-              <p>Невибаглива акваріумна риба, підходить для початківців.</p>
-            </article>
-
-            <article id="birds" class="animal-card species-bird">
-              <div class="card-meta">
-                <span class="species-tag">Папуга</span>
-                <span class="size-badge size-small">Малий</span>
-              </div>
-              <img
-                src="assets/img/bird-budgie.jpg"
-                alt="Хвилястий папужка зеленого забарвлення"
-              />
-              <h3>Хвилястий папужка</h3>
-              <p>
-                Товариський і балакучий птах, легко звикає до рук за регулярного
-                спілкування.
-              </p>
-            </article>
-
-            <article id="rodents" class="animal-card species-rodent">
-              <div class="card-meta">
-                <span class="species-tag">Хом'як</span>
-                <span class="size-badge size-small">Малий</span>
-              </div>
-              <img
-                src="assets/img/hamster-dzungarian.jpg"
-                alt="Джунгарський хом'як сірого забарвлення"
-              />
-              <h3>Джунгарський хом'як</h3>
-              <p>
-                Невеликий нічний гризун, якому достатньо просторої клітки й
-                колеса для бігу.
-              </p>
-            </article>
-
-            <article id="reptiles" class="animal-card species-reptile">
-              <div class="card-meta">
-                <span class="species-tag">Черепаха</span>
-                <span class="size-badge size-medium">Середній</span>
-              </div>
-              <img
-                src="assets/img/turtle-redeared.jpg"
-                alt="Червоновуха черепаха в акваріумі з сушею"
-              />
-              <h3>Червоновуха черепаха</h3>
-              <p>
-                Водно-суходільна черепаха, потребує акватераріум з підігрівом і
-                УФ-лампою.
-              </p>
-            </article>
+          <p class="hint">Клік по картці додає тварину в обране.</p>
+          <!-- Практична 10: сюди монтується Vue-застосунок PetsCatalog.
+               Лічильник і сітку карток рендерить Vue (шаблон у script.js),
+               тому статичні картки-заглушки з практикуму 2 прибрано. -->
+          <div id="pets-app">
+            <p>Завантаження каталогу…</p>
           </div>
         </section>
       </main>
@@ -211,7 +123,7 @@
         <h2>Догляд за обраною твариною</h2>
         <p>
           Оберіть тварину зі списку вище, щоб переглянути рекомендації щодо
-          годування, утримання та ветеринарного
+          годування, утримання та ветеринарного догляду.
         </p>
       </aside>
     </div>

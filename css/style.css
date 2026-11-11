@@ -351,7 +351,7 @@ main section h2 {
   font-size: var(--fs-body);
 }
 
-/* Вікові класи, які додає script.js (практична 7) */
+/* Вікові класи, які додає компонент PetCard (практична 7, 10) */
 .animal-card.young {
   border-bottom: 5px solid #f2b84b;
 }
@@ -438,6 +438,35 @@ main section h2 {
 
 #random-dog .animal-grid {
   grid-template-columns: minmax(0, 320px);
+}
+
+/* Практична 10: позначка «обране» */
+#animals .hint {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.animal-card {
+  cursor: pointer;
+}
+
+.animal-card.favorite {
+  box-shadow:
+    0 0 0 3px var(--bird),
+    0 3px 8px rgba(43, 58, 26, 0.14);
+}
+
+/* Бейдж стоїть у card-meta поруч із видом і розміром, тому фото його не перекриває */
+.fav-mark {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background-color: #f5ecd0;
+  color: #7a5f00;
+  font-size: var(--fs-small);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 aside {

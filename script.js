@@ -1,75 +1,15 @@
+// Практична 10. Обрано Vue 3: працює з CDN без Babel і JSX, шаблони схожі на
+// звичайний HTML, а зміни масиву (push, присвоєння) Vue відстежує сам.
+
 // Перевірка підключення файлу
 console.log("script.js підключено");
-
-// Дані варіанта 12: масив тварин (у кожної свої фото й опис)
-const animals = [
-  {
-    name: "Мурка",
-    species: "кіт",
-    ageYears: 1,
-    img: "assets/img/cat-tabby.jpg",
-    description:
-      "Грайлива молода кішка, любить ганяти м'ячик і спати на підвіконні.",
-  },
-  {
-    name: "Барсик",
-    species: "кіт",
-    ageYears: 5,
-    img: "assets/img/cat-british.jpg",
-    description: "Спокійний дорослий кіт британської породи, не любить галасу.",
-  },
-  {
-    name: "Рекс",
-    species: "собака",
-    ageYears: 3,
-    img: "assets/img/dog-labrador.jpg",
-    description: "Активний лабрадор, потребує щоденних прогулянок і ігор.",
-  },
-  {
-    name: "Бім",
-    species: "собака",
-    ageYears: 0.5,
-    img: "assets/img/dog-puppy.jpg",
-    description: "Цікаве цуценя, якого ще треба привчати до команд.",
-  },
-  {
-    name: "Золотко",
-    species: "риба",
-    ageYears: 2,
-    img: "assets/img/fish-goldfish.jpg",
-    description: "Спокійна золота рибка, яка полюбляє просторий акваріум.",
-  },
-  {
-    name: "Кеша",
-    species: "папуга",
-    ageYears: 1.5,
-    img: "assets/img/bird-budgie.jpg",
-    description:
-      "Балакучий хвилястий папужка, вже вміє повторювати кілька слів.",
-  },
-  {
-    name: "Пухнастик",
-    species: "хом'як",
-    ageYears: 0.8,
-    img: "assets/img/hamster-dzungarian.jpg",
-    description:
-      "Маленький джунгарський хом'як, активний уночі й любить колесо.",
-  },
-  {
-    name: "Тортілла",
-    species: "черепаха",
-    ageYears: 10,
-    img: "assets/img/turtle-redeared.jpg",
-    description:
-      "Доросла червоновуха черепаха, любить гріти спинку під лампою.",
-  },
-];
 
 // Тварина до цього віку (у роках) вважається молодою
 const YOUNG_LIMIT_YEARS = 2;
 
 // Довідник для оформлення карток: клас виду, підпис, розмір, фото за замовчуванням,
-// загальний опис (для нових тварин із форми) і id для навігації
+// загальний опис (для нових тварин із форми) і id для навігації.
+// Це незмінна константа; у компонент PetCard вона потрапляє лише через props.
 const SPECIES_INFO = {
   кіт: {
     cls: "cat",
@@ -135,7 +75,7 @@ const SPECIES_INFO = {
 // Стрілкова функція: переводить вік із років у місяці
 const ageInMonths = (years) => years * 12;
 
-// Класифікує тварину за віком: повертає «молода» або «доросла»
+// Класифікує тварину за віком: повертає «молода» або «доросла» (для консолі)
 function classifyByAge(animal) {
   if (animal.ageYears < YOUNG_LIMIT_YEARS) {
     return "молода";
@@ -144,76 +84,224 @@ function classifyByAge(animal) {
   }
 }
 
-// Повертає CSS-клас за віком: "young" або "adult"
-function ageClass(animal) {
-  return animal.ageYears < YOUNG_LIMIT_YEARS ? "young" : "adult";
-}
+// ===== Практична 10: компонент PetCard (варіант 12) =====
+// Props: name, species, ageYears (за варіантом) + необов'язкові img, description,
+// а також info (запис зі SPECIES_INFO) і youngLimit - щоб компонент не звертався
+// до глобальних змінних напряму.
+// Подія варіанта: клік по картці перемикає ЛОКАЛЬНИЙ прапорець isFavorite.
+// Стан живе всередині компонента, тому $emit батьківському не потрібен.
+const PetCard = {
+  name: "PetCard",
+  props: {
+    name: { type: String, required: true },
+    species: { type: String, required: true },
+    ageYears: { type: Number, default: null }, // у собаки з API віку немає
+    img: { type: String, default: "" },
+    description: { type: String, default: "" },
+    info: { type: Object, required: true },
+    youngLimit: { type: Number, default: 2 },
+  },
+  data() {
+    return { isFavorite: false };
+  },
+  computed: {
+    // Похідні значення: перераховуються самі, коли змінюються props
+    hasAge() {
+      return this.ageYears !== null;
+    },
+    ageClass() {
+      if (!this.hasAge) return null;
+      return this.ageYears < this.youngLimit ? "young" : "adult";
+    },
+    altText() {
+      if (!this.hasAge) return `${this.info.tag} ${this.name}`;
+      const category = this.ageYears < this.youngLimit ? "молода" : "доросла";
+      return `${this.info.tag} ${this.name}, ${category}`;
+    },
+    imgSrc() {
+      return this.img || this.info.img;
+    },
+    text() {
+      return this.description || this.info.description;
+    },
+  },
+  methods: {
+    toggleFavorite() {
+      this.isFavorite = !this.isFavorite; // Vue сам перемалює картку
+    },
+  },
+  // Бейдж «★ Обране» - третя «пігулка» в card-meta, щоб його не перекривало фото
+  template: `
+    <article
+      class="animal-card"
+      :class="['species-' + info.cls, ageClass, { favorite: isFavorite }]"
+      :data-species="species"
+      tabindex="0"
+      @click="toggleFavorite"
+      @keydown.enter.prevent="toggleFavorite"
+      @keydown.space.prevent="toggleFavorite"
+    >
+      <div class="card-meta">
+        <span class="species-tag">{{ info.tag }}</span>
+        <span class="size-badge" :class="'size-' + info.size">{{ info.sizeText }}</span>
+        <span v-if="isFavorite" class="fav-mark">★ Обране</span>
+      </div>
+      <img :src="imgSrc" :alt="altText" />
+      <h3>{{ name }}</h3>
+      <p>{{ text }}</p>
+    </article>
+  `,
+};
 
-// Крок 3. Вибираємо контейнер і елемент-підсумок
-const listContainer = document.querySelector("#pets-list");
-const petsCount = document.querySelector("#pets-count");
+// ===== Практична 10: батьківський застосунок PetsCatalog =====
+// Масив тварин тепер у реактивному стані data(), а не у зовнішній змінній.
+const petsApp = Vue.createApp({
+  name: "PetsCatalog",
+  components: { PetCard },
+  data() {
+    return {
+      // Дані варіанта 12 (з практикуму 6) + унікальний id для :key
+      pets: [
+        {
+          id: 1,
+          name: "Мурка",
+          species: "кіт",
+          ageYears: 1,
+          img: "assets/img/cat-tabby.jpg",
+          description:
+            "Грайлива молода кішка, любить ганяти м'ячик і спати на підвіконні.",
+        },
+        {
+          id: 2,
+          name: "Барсик",
+          species: "кіт",
+          ageYears: 5,
+          img: "assets/img/cat-british.jpg",
+          description:
+            "Спокійний дорослий кіт британської породи, не любить галасу.",
+        },
+        {
+          id: 3,
+          name: "Рекс",
+          species: "собака",
+          ageYears: 3,
+          img: "assets/img/dog-labrador.jpg",
+          description:
+            "Активний лабрадор, потребує щоденних прогулянок і ігор.",
+        },
+        {
+          id: 4,
+          name: "Бім",
+          species: "собака",
+          ageYears: 0.5,
+          img: "assets/img/dog-puppy.jpg",
+          description: "Цікаве цуценя, якого ще треба привчати до команд.",
+        },
+        {
+          id: 5,
+          name: "Золотко",
+          species: "риба",
+          ageYears: 2,
+          img: "assets/img/fish-goldfish.jpg",
+          description:
+            "Спокійна золота рибка, яка полюбляє просторий акваріум.",
+        },
+        {
+          id: 6,
+          name: "Кеша",
+          species: "папуга",
+          ageYears: 1.5,
+          img: "assets/img/bird-budgie.jpg",
+          description:
+            "Балакучий хвилястий папужка, вже вміє повторювати кілька слів.",
+        },
+        {
+          id: 7,
+          name: "Пухнастик",
+          species: "хом'як",
+          ageYears: 0.8,
+          img: "assets/img/hamster-dzungarian.jpg",
+          description:
+            "Маленький джунгарський хом'як, активний уночі й любить колесо.",
+        },
+        {
+          id: 8,
+          name: "Тортілла",
+          species: "черепаха",
+          ageYears: 10,
+          img: "assets/img/turtle-redeared.jpg",
+          description:
+            "Доросла червоновуха черепаха, любить гріти спинку під лампою.",
+        },
+      ],
+      nextId: 9,
+      speciesFilter: "all",
+      sizeFilter: "all",
+    };
+  },
+  computed: {
+    // Відфільтрований список - похідне значення замість ручного updateView()
+    filteredPets() {
+      return this.pets.filter((pet) => {
+        const info = SPECIES_INFO[pet.species];
+        const speciesOk =
+          this.speciesFilter === "all" || info.cls === this.speciesFilter;
+        const sizeOk =
+          this.sizeFilter === "all" || info.size === this.sizeFilter;
+        return speciesOk && sizeOk;
+      });
+    },
+    // id для навігації (#cats, #dogs…) отримує лише перша картка кожного виду
+    anchorIds() {
+      const ids = {};
+      const used = new Set();
+      for (const pet of this.filteredPets) {
+        const anchor = SPECIES_INFO[pet.species].anchor;
+        if (!used.has(anchor)) {
+          used.add(anchor);
+          ids[pet.id] = anchor;
+        }
+      }
+      return ids;
+    },
+  },
+  methods: {
+    infoFor(species) {
+      return SPECIES_INFO[species];
+    },
+    // Додавання нової тварини: звичайний push, Vue перемалює список сам
+    addPet(pet) {
+      this.pets.push({ id: this.nextId++, ...pet });
+      // Скидаємо фільтри, щоб новий запис точно було видно
+      this.speciesFilter = "all";
+      this.sizeFilter = "all";
+    },
+  },
+  // v-for з обов'язковим :key за унікальним id
+  template: `
+    <p id="pets-count">Показано: {{ filteredPets.length }} з {{ pets.length }}</p>
+    <div class="animal-grid" id="pets-list">
+      <PetCard
+        v-for="pet in filteredPets"
+        :key="pet.id"
+        :id="anchorIds[pet.id]"
+        :name="pet.name"
+        :species="pet.species"
+        :age-years="pet.ageYears"
+        :img="pet.img"
+        :description="pet.description"
+        :info="infoFor(pet.species)"
+        :young-limit="${YOUNG_LIMIT_YEARS}"
+      />
+    </div>
+  `,
+}).mount("#pets-app");
 
-// Крок 2. Динамічно видаляємо статичні картки-заглушки з практикуму 2
-document
-  .querySelectorAll("#pets-list .animal-card")
-  .forEach((card) => card.remove());
-
-// Крок 4-8. Рендер списку тварин із масиву.
-// Для кожної тварини створює <article> з мета-даними, фото, h3 (ім'я) і p (опис),
-// ставить атрибути (img.src, img.alt, data-species) та клас young/adult за віком.
-// Практична 9: функція вміє малювати в будь-який контейнер (container),
-// а id для навігації (#cats, #dogs…) ставить лише коли withAnchors = true.
-function renderPets(list, container = listContainer, withAnchors = true) {
-  // Очищаємо контейнер перед виведенням
-  container.innerHTML = "";
-  // Щоб id для навігації (#cats, #dogs…) отримала лише перша картка виду
-  const usedAnchors = new Set();
-
-  list.forEach((animal) => {
-    const info = SPECIES_INFO[animal.species];
-
-    // Картка
-    const card = document.createElement("article");
-    card.classList.add("animal-card", `species-${info.cls}`);
-    // Вікова класифікація лише якщо вік відомий (для тварин з API його немає)
-    if (animal.ageYears !== undefined) {
-      card.classList.add(ageClass(animal));
-    }
-    card.dataset.species = animal.species;
-    if (withAnchors && !usedAnchors.has(info.anchor)) {
-      card.id = info.anchor;
-      usedAnchors.add(info.anchor);
-    }
-
-    // Мета-дані: вид і розмір
-    const meta = document.createElement("div");
-    meta.classList.add("card-meta");
-    const tag = document.createElement("span");
-    tag.classList.add("species-tag");
-    tag.textContent = info.tag;
-    const size = document.createElement("span");
-    size.classList.add("size-badge", `size-${info.size}`);
-    size.textContent = info.sizeText;
-    meta.append(tag, size);
-
-    // Фото: своє, а якщо його немає - стандартне для виду
-    const img = document.createElement("img");
-    img.src = animal.img || info.img;
-    img.alt =
-      animal.ageYears !== undefined
-        ? `${info.tag} ${animal.name}, ${classifyByAge(animal)}`
-        : `${info.tag} ${animal.name}`;
-
-    // Ім'я та опис: свій, а якщо його немає - загальний для виду
-    const title = document.createElement("h3");
-    title.textContent = animal.name;
-    const text = document.createElement("p");
-    text.textContent = animal.description || info.description;
-
-    card.append(meta, img, title, text);
-    container.append(card);
-  });
-}
+// Крок 7. Ручний рендер із практикуму 7 (функція renderPets: createElement,
+// innerHTML = "", append, видалення заглушок через querySelectorAll + remove)
+// видалено - його замінив компонент PetCard + v-for у PetsCatalog.
+// updateView() і getFilteredPets() також видалено: їх замінило обчислюване
+// значення filteredPets, а лічильник «Показано: …» тепер у шаблоні.
 
 // Цикл for...of: виводить у консоль усіх тварин заданого виду (з практикуму 6)
 function printBySpecies(list, species) {
@@ -247,8 +335,8 @@ function printAll(list) {
 // ===== Практична 8: події, форма, валідація =====
 
 // Елементи фільтрів
-const speciesFilter = document.querySelector("#species-select");
-const sizeFilter = document.querySelector("#size-select");
+const speciesSelect = document.querySelector("#species-select");
+const sizeSelect = document.querySelector("#size-select");
 const filtersForm = document.querySelector("#filters form");
 
 // Елементи форми додавання
@@ -258,30 +346,17 @@ const speciesInput = document.querySelector("#pet-species");
 const ageInput = document.querySelector("#pet-age");
 const ageError = document.querySelector("#age-error");
 
-// Повертає тварин, що відповідають обраним фільтрам виду й розміру
-function getFilteredPets() {
-  return animals.filter((animal) => {
-    const info = SPECIES_INFO[animal.species];
-    const speciesOk =
-      speciesFilter.value === "all" || info.cls === speciesFilter.value;
-    const sizeOk = sizeFilter.value === "all" || info.size === sizeFilter.value;
-    return speciesOk && sizeOk;
-  });
-}
-
-// Перемальовує список з урахуванням фільтрів і оновлює підсумок
-function updateView() {
-  const list = getFilteredPets();
-  renderPets(list);
-  petsCount.textContent = `Показано: ${list.length} з ${animals.length}`;
-}
-
 // Форма фільтрів не має надсилатися як звичайна форма
 filtersForm.addEventListener("submit", (event) => event.preventDefault());
 
-// Друга подія варіанта: change на select виду фільтрує список
-speciesFilter.addEventListener("change", updateView);
-sizeFilter.addEventListener("change", updateView);
+// Друга подія варіанта: change на select. Тепер вона лише змінює реактивний
+// стан Vue - список перемальовується автоматично.
+speciesSelect.addEventListener("change", () => {
+  petsApp.speciesFilter = speciesSelect.value;
+});
+sizeSelect.addEventListener("change", () => {
+  petsApp.sizeFilter = sizeSelect.value;
+});
 
 // Додаткова валідація: input на ageYears (від'ємне або більше 50)
 ageInput.addEventListener("input", () => {
@@ -316,21 +391,17 @@ petForm.addEventListener("submit", (event) => {
     return;
   }
 
-  // Новий об'єкт тієї самої форми, що й елементи масиву
-  // (фото й опис підставляться автоматично зі SPECIES_INFO)
-  const newPet = {
+  // Фото й опис підставить PetCard зі SPECIES_INFO (через prop info)
+  petsApp.addPet({
     name: name,
     species: speciesInput.value,
     ageYears: Number(ageInput.value),
-  };
+  });
 
-  animals.push(newPet);
+  // Синхронізуємо select-и з уже скинутим станом
+  speciesSelect.value = "all";
+  sizeSelect.value = "all";
 
-  // Скидаємо фільтри, щоб новий запис точно було видно
-  speciesFilter.value = "all";
-  sizeFilter.value = "all";
-
-  updateView();
   petForm.reset();
   ageError.textContent = "";
 });
@@ -340,10 +411,36 @@ petForm.addEventListener("submit", (event) => {
 // Адреса ендпоінта винесена в константу (крок 3)
 const DOG_API_URL = "https://dog.ceo/api/breeds/image/random";
 
-const dogList = document.querySelector("#dog-list");
 const dogLoading = document.querySelector("#dog-loading");
 const dogError = document.querySelector("#dog-error");
 const dogRefresh = document.querySelector("#dog-refresh");
+
+// Практична 10: картку собаки теж рендерить PetCard (окремий Vue-застосунок).
+// :key за адресою фото - нова собака отримує новий екземпляр компонента
+// зі скинутим isFavorite.
+const dogApp = Vue.createApp({
+  name: "RandomDog",
+  components: { PetCard },
+  data() {
+    return { dog: null };
+  },
+  methods: {
+    infoFor(species) {
+      return SPECIES_INFO[species];
+    },
+  },
+  template: `
+    <PetCard
+      v-if="dog"
+      :key="dog.img"
+      :name="dog.name"
+      :species="dog.species"
+      :img="dog.img"
+      :description="dog.description"
+      :info="infoFor(dog.species)"
+    />
+  `,
+}).mount("#dog-list");
 
 // Показує/ховає стан завантаження і блокує кнопку на час запиту
 function showLoading(isLoading) {
@@ -382,16 +479,13 @@ async function loadDog() {
     // URL має вигляд .../breeds/hound-afghan/xxx.jpg - беремо породу зі шляху
     const breed = data.message.split("/")[4].replace("-", " ");
 
-    // Підганяємо відповідь API під форму об'єкта з масиву animals
-    const dog = {
+    // Новий об'єкт у реактивному стані - Vue сам перемалює картку
+    dogApp.dog = {
       name: "Випадкова собака",
       species: "собака",
       img: data.message,
       description: `Порода (за даними API): ${breed}.`,
     };
-
-    // Та сама функція рендеру, що й для списку тварин
-    renderPets([dog], dogList, false);
   } catch (error) {
     // Користувачу - зрозуміле повідомлення, розробнику - деталі в консоль
     showError("Не вдалося завантажити фото собаки. Спробуйте пізніше.");
@@ -405,14 +499,11 @@ async function loadDog() {
 // Кнопка «Оновити» - повторний запит без перезавантаження сторінки
 dogRefresh.addEventListener("click", loadDog);
 
-// Перший показ списку
-updateView();
-
 // Перше завантаження фото з API
 loadDog();
 
-// Виклики з реальними даними (з практикуму 6)
-printAll(animals);
-printBySpecies(animals, "кіт");
-printBySpecies(animals, "собака");
+// Виклики з реальними даними (з практикуму 6) - тепер дані беремо зі стану Vue
+printAll(petsApp.pets);
+printBySpecies(petsApp.pets, "кіт");
+printBySpecies(petsApp.pets, "собака");
 console.log("Вік Рекса у місяцях:", ageInMonths(3));
