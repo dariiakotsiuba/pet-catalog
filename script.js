@@ -1,5 +1,6 @@
 // Практична 10. Обрано Vue 3: працює з CDN без Babel і JSX, шаблони схожі на
 // звичайний HTML, а зміни масиву (push, присвоєння) Vue відстежує сам.
+// Практична 11: дані зберігаються в IndexedDB (з одноразовою міграцією з localStorage).
 
 // Перевірка підключення файлу
 console.log("script.js підключено");
@@ -72,6 +73,76 @@ const SPECIES_INFO = {
   },
 };
 
+// Практична 11: стартові тварини (раніше були в data() PetsCatalog).
+// Поля моделі: id, name, species, photoUrl, notes (+ ageYears з попередніх практикумів).
+// Використовуються лише для першого заповнення IndexedDB.
+const DEFAULT_PETS = [
+  {
+    id: 1,
+    name: "Мурка",
+    species: "кіт",
+    ageYears: 1,
+    photoUrl: "assets/img/cat-tabby.jpg",
+    notes: "Грайлива молода кішка, любить ганяти м'ячик і спати на підвіконні.",
+  },
+  {
+    id: 2,
+    name: "Барсик",
+    species: "кіт",
+    ageYears: 5,
+    photoUrl: "assets/img/cat-british.jpg",
+    notes: "Спокійний дорослий кіт британської породи, не любить галасу.",
+  },
+  {
+    id: 3,
+    name: "Рекс",
+    species: "собака",
+    ageYears: 3,
+    photoUrl: "assets/img/dog-labrador.jpg",
+    notes: "Активний лабрадор, потребує щоденних прогулянок і ігор.",
+  },
+  {
+    id: 4,
+    name: "Бім",
+    species: "собака",
+    ageYears: 0.5,
+    photoUrl: "assets/img/dog-puppy.jpg",
+    notes: "Цікаве цуценя, якого ще треба привчати до команд.",
+  },
+  {
+    id: 5,
+    name: "Золотко",
+    species: "риба",
+    ageYears: 2,
+    photoUrl: "assets/img/fish-goldfish.jpg",
+    notes: "Спокійна золота рибка, яка полюбляє просторий акваріум.",
+  },
+  {
+    id: 6,
+    name: "Кеша",
+    species: "папуга",
+    ageYears: 1.5,
+    photoUrl: "assets/img/bird-budgie.jpg",
+    notes: "Балакучий хвилястий папужка, вже вміє повторювати кілька слів.",
+  },
+  {
+    id: 7,
+    name: "Пухнастик",
+    species: "хом'як",
+    ageYears: 0.8,
+    photoUrl: "assets/img/hamster-dzungarian.jpg",
+    notes: "Маленький джунгарський хом'як, активний уночі й любить колесо.",
+  },
+  {
+    id: 8,
+    name: "Тортілла",
+    species: "черепаха",
+    ageYears: 10,
+    photoUrl: "assets/img/turtle-redeared.jpg",
+    notes: "Доросла червоновуха черепаха, любить гріти спинку під лампою.",
+  },
+];
+
 // Стрілкова функція: переводить вік із років у місяці
 const ageInMonths = (years) => years * 12;
 
@@ -84,12 +155,104 @@ function classifyByAge(animal) {
   }
 }
 
+// ===== Практична 11: localStorage та IndexedDB =====
+const LS_KEY = "pets";
+const LS_MIGRATED_KEY = "petsMigrated";
+const DB_NAME = "PetsDB";
+const STORE = "pets";
+
+// Кроки 2-4: localStorage (після переходу на IndexedDB потрібен лише для міграції).
+// JSON.stringify перед записом, JSON.parse у try/catch після читання.
+function saveToLocalStorage(items) {
+  localStorage.setItem(LS_KEY, JSON.stringify(items));
+}
+
+function loadFromLocalStorage() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (error) {
+    console.error("Пошкоджені дані в localStorage:", error);
+    return [];
+  }
+}
+
+// Кроки 5-6: відкриття бази PetsDB (версія 1). Object store «pets» з keyPath «id»
+// створюється лише в onupgradeneeded.
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(STORE)) {
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Крок 7: CRUD. put() і додає новий запис, і оновлює наявний із тим самим id.
+async function addItem(item) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(item);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Оновлення - той самий put()
+const updateItem = addItem;
+
+// Читання всіх записів (транзакція readonly)
+async function getAllItems() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const request = tx.objectStore(STORE).getAll();
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Видалення запису за id (транзакція readwrite)
+async function deleteItem(id) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+// Крок 8: одноразова міграція. Якщо store порожній, переносимо дані з
+// localStorage (а якщо там порожньо - стартових тварин) і ставимо прапорець,
+// щоб перенесення не повторювалось при наступних завантаженнях.
+async function migrateFromLocalStorage() {
+  if (localStorage.getItem(LS_MIGRATED_KEY) === "true") return;
+
+  const existing = await getAllItems();
+  if (existing.length === 0) {
+    const old = loadFromLocalStorage();
+    const start = old.length > 0 ? old : DEFAULT_PETS;
+    for (const pet of start) {
+      await addItem({ ...pet });
+    }
+  }
+
+  localStorage.setItem(LS_MIGRATED_KEY, "true");
+}
+
 // ===== Практична 10: компонент PetCard (варіант 12) =====
 // Props: name, species, ageYears (за варіантом) + необов'язкові img, description,
 // а також info (запис зі SPECIES_INFO) і youngLimit - щоб компонент не звертався
 // до глобальних змінних напряму.
 // Подія варіанта: клік по картці перемикає ЛОКАЛЬНИЙ прапорець isFavorite.
-// Стан живе всередині компонента, тому $emit батьківському не потрібен.
+// Практична 11: removable + подія remove - кнопка «Видалити» (видаляє батько).
 const PetCard = {
   name: "PetCard",
   props: {
@@ -100,7 +263,9 @@ const PetCard = {
     description: { type: String, default: "" },
     info: { type: Object, required: true },
     youngLimit: { type: Number, default: 2 },
+    removable: { type: Boolean, default: false },
   },
+  emits: ["remove"],
   data() {
     return { isFavorite: false };
   },
@@ -130,7 +295,8 @@ const PetCard = {
       this.isFavorite = !this.isFavorite; // Vue сам перемалює картку
     },
   },
-  // Бейдж «★ Обране» - третя «пігулка» в card-meta, щоб його не перекривало фото
+  // Бейдж «★ Обране» - третя «пігулка» в card-meta, щоб його не перекривало фото.
+  // @click.stop і @keydown.stop на кнопці не дають події дійти до <article>.
   template: `
     <article
       class="animal-card"
@@ -149,92 +315,26 @@ const PetCard = {
       <img :src="imgSrc" :alt="altText" />
       <h3>{{ name }}</h3>
       <p>{{ text }}</p>
+      <button
+        v-if="removable"
+        type="button"
+        class="remove-btn"
+        @click.stop="$emit('remove')"
+        @keydown.stop
+      >Видалити</button>
     </article>
   `,
 };
 
 // ===== Практична 10: батьківський застосунок PetsCatalog =====
-// Масив тварин тепер у реактивному стані data(), а не у зовнішній змінній.
+// Практична 11: масив тварин заповнюється з IndexedDB у mounted() -> init().
 const petsApp = Vue.createApp({
   name: "PetsCatalog",
   components: { PetCard },
   data() {
     return {
-      // Дані варіанта 12 (з практикуму 6) + унікальний id для :key
-      pets: [
-        {
-          id: 1,
-          name: "Мурка",
-          species: "кіт",
-          ageYears: 1,
-          img: "assets/img/cat-tabby.jpg",
-          description:
-            "Грайлива молода кішка, любить ганяти м'ячик і спати на підвіконні.",
-        },
-        {
-          id: 2,
-          name: "Барсик",
-          species: "кіт",
-          ageYears: 5,
-          img: "assets/img/cat-british.jpg",
-          description:
-            "Спокійний дорослий кіт британської породи, не любить галасу.",
-        },
-        {
-          id: 3,
-          name: "Рекс",
-          species: "собака",
-          ageYears: 3,
-          img: "assets/img/dog-labrador.jpg",
-          description:
-            "Активний лабрадор, потребує щоденних прогулянок і ігор.",
-        },
-        {
-          id: 4,
-          name: "Бім",
-          species: "собака",
-          ageYears: 0.5,
-          img: "assets/img/dog-puppy.jpg",
-          description: "Цікаве цуценя, якого ще треба привчати до команд.",
-        },
-        {
-          id: 5,
-          name: "Золотко",
-          species: "риба",
-          ageYears: 2,
-          img: "assets/img/fish-goldfish.jpg",
-          description:
-            "Спокійна золота рибка, яка полюбляє просторий акваріум.",
-        },
-        {
-          id: 6,
-          name: "Кеша",
-          species: "папуга",
-          ageYears: 1.5,
-          img: "assets/img/bird-budgie.jpg",
-          description:
-            "Балакучий хвилястий папужка, вже вміє повторювати кілька слів.",
-        },
-        {
-          id: 7,
-          name: "Пухнастик",
-          species: "хом'як",
-          ageYears: 0.8,
-          img: "assets/img/hamster-dzungarian.jpg",
-          description:
-            "Маленький джунгарський хом'як, активний уночі й любить колесо.",
-        },
-        {
-          id: 8,
-          name: "Тортілла",
-          species: "черепаха",
-          ageYears: 10,
-          img: "assets/img/turtle-redeared.jpg",
-          description:
-            "Доросла червоновуха черепаха, любить гріти спинку під лампою.",
-        },
-      ],
-      nextId: 9,
+      pets: [],
+      dbError: "",
       speciesFilter: "all",
       sizeFilter: "all",
     };
@@ -265,21 +365,62 @@ const petsApp = Vue.createApp({
       return ids;
     },
   },
+  mounted() {
+    this.init();
+  },
   methods: {
     infoFor(species) {
       return SPECIES_INFO[species];
     },
-    // Додавання нової тварини: звичайний push, Vue перемалює список сам
-    addPet(pet) {
-      this.pets.push({ id: this.nextId++, ...pet });
+    // Крок 9: джерело даних для рендеру - IndexedDB
+    async init() {
+      try {
+        await migrateFromLocalStorage();
+        this.pets = await getAllItems();
+      } catch (error) {
+        // Крок 11: IndexedDB недоступна - показуємо повідомлення
+        console.error(error);
+        this.dbError = "Не вдалося відкрити IndexedDB. Зміни не збережуться.";
+        this.pets = DEFAULT_PETS.map((pet) => ({ ...pet }));
+      }
+
+      // Виклики з практикуму 6 - тепер, коли дані вже завантажені
+      printAll(this.pets);
+      printBySpecies(this.pets, "кіт");
+      printBySpecies(this.pets, "собака");
+    },
+    // Додавання: спершу запис в IndexedDB, потім оновлення стану Vue.
+    // record - звичайний об'єкт (не Vue-проксі), інакше put() кине DataCloneError.
+    async addPet(pet) {
+      const record = { id: Date.now(), ...pet };
+      try {
+        await addItem(record);
+        this.pets.push(record);
+        this.dbError = "";
+      } catch (error) {
+        console.error(error);
+        this.dbError = "Не вдалося зберегти тварину.";
+      }
       // Скидаємо фільтри, щоб новий запис точно було видно
       this.speciesFilter = "all";
       this.sizeFilter = "all";
+    },
+    // Видалення: з IndexedDB і зі списку на екрані
+    async removePet(id) {
+      try {
+        await deleteItem(id);
+        this.pets = this.pets.filter((pet) => pet.id !== id);
+        this.dbError = "";
+      } catch (error) {
+        console.error(error);
+        this.dbError = "Не вдалося видалити тварину.";
+      }
     },
   },
   // v-for з обов'язковим :key за унікальним id
   template: `
     <p id="pets-count">Показано: {{ filteredPets.length }} з {{ pets.length }}</p>
+    <p v-if="dbError" class="error" role="alert">{{ dbError }}</p>
     <div class="animal-grid" id="pets-list">
       <PetCard
         v-for="pet in filteredPets"
@@ -288,10 +429,12 @@ const petsApp = Vue.createApp({
         :name="pet.name"
         :species="pet.species"
         :age-years="pet.ageYears"
-        :img="pet.img"
-        :description="pet.description"
+        :img="pet.photoUrl"
+        :description="pet.notes"
         :info="infoFor(pet.species)"
         :young-limit="${YOUNG_LIMIT_YEARS}"
+        removable
+        @remove="removePet(pet.id)"
       />
     </div>
   `,
@@ -345,6 +488,9 @@ const nameInput = document.querySelector("#pet-name");
 const speciesInput = document.querySelector("#pet-species");
 const ageInput = document.querySelector("#pet-age");
 const ageError = document.querySelector("#age-error");
+// Практична 11: нові поля форми
+const photoInput = document.querySelector("#pet-photo");
+const notesInput = document.querySelector("#pet-notes");
 
 // Форма фільтрів не має надсилатися як звичайна форма
 filtersForm.addEventListener("submit", (event) => event.preventDefault());
@@ -391,11 +537,13 @@ petForm.addEventListener("submit", (event) => {
     return;
   }
 
-  // Фото й опис підставить PetCard зі SPECIES_INFO (через prop info)
+  // Порожні photoUrl і notes PetCard замінить значеннями зі SPECIES_INFO
   petsApp.addPet({
     name: name,
     species: speciesInput.value,
     ageYears: Number(ageInput.value),
+    photoUrl: photoInput.value.trim(),
+    notes: notesInput.value.trim(),
   });
 
   // Синхронізуємо select-и з уже скинутим станом
@@ -502,8 +650,4 @@ dogRefresh.addEventListener("click", loadDog);
 // Перше завантаження фото з API
 loadDog();
 
-// Виклики з реальними даними (з практикуму 6) - тепер дані беремо зі стану Vue
-printAll(petsApp.pets);
-printBySpecies(petsApp.pets, "кіт");
-printBySpecies(petsApp.pets, "собака");
 console.log("Вік Рекса у місяцях:", ageInMonths(3));

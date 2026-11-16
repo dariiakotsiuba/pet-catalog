@@ -469,6 +469,25 @@ main section h2 {
   line-height: 1.4;
 }
 
+/* Практична 11: кнопка «Видалити» на картці */
+.remove-btn {
+  margin-top: 12px;
+  padding: 6px 16px;
+  border: 2px solid #9b2c1a;
+  border-radius: var(--radius-pill);
+  background-color: var(--surface);
+  color: #9b2c1a;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--fs-small);
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background-color: #9b2c1a;
+  color: #fff;
+}
+
 aside {
   align-self: start;
   margin: 0 0 40px;
