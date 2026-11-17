@@ -1,6 +1,7 @@
 // Практична 10. Обрано Vue 3: працює з CDN без Babel і JSX, шаблони схожі на
 // звичайний HTML, а зміни масиву (push, присвоєння) Vue відстежує сам.
 // Практична 11: дані зберігаються в IndexedDB (з одноразовою міграцією з localStorage).
+// Практична 12: Canvas-акваріум, кількість рибок залежить від кількості тварин у каталозі.
 
 // Перевірка підключення файлу
 console.log("script.js підключено");
@@ -651,3 +652,203 @@ dogRefresh.addEventListener("click", loadDog);
 loadDog();
 
 console.log("Вік Рекса у місяцях:", ageInMonths(3));
+
+// ===== Практична 12: Canvas-акваріум (варіант 12) =====
+// Декоративна анімація, яка залежить від даних каталогу: на кожну тварину
+// з petsApp.pets припадає одна рибка. Колір рибки - за видом тварини, розмір - за віком.
+// Рибки рухаються по синусоїді: x змінюється рівномірно, y = baseY + amp * sin(phase + x * wave).
+
+const aquariumCanvas = document.querySelector("#aquarium-canvas");
+const aquariumToggle = document.querySelector("#aquarium-toggle");
+const ctx = aquariumCanvas.getContext("2d");
+
+const AQUARIUM_W = aquariumCanvas.width;
+const AQUARIUM_H = aquariumCanvas.height;
+const MAX_FISH = 40; // обмеження, щоб анімація не гальмувала за великої кількості записів
+
+// Кольори видів (ті самі, що в CSS-змінних --cat, --dog ...)
+const SPECIES_COLORS = {
+  cat: "#d9761f",
+  dog: "#7cb342",
+  fish: "#4f8a6d",
+  bird: "#c9a227",
+  rodent: "#8b5e34",
+  reptile: "#6b8e4e",
+};
+
+// id тварини -> стан її рибки. Так при додаванні/видаленні тварини
+// з'являється або зникає саме її рибка, а решта не «стрибають».
+const fishById = new Map();
+
+let aquariumFrameId = null; // id запиту requestAnimationFrame (null - анімація зупинена)
+let lastFrameTime = null;
+let userPaused = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+let aquariumInView = true;
+
+// Створює рибку для тварини з випадковими параметрами руху
+function createFish(pet) {
+  const info = SPECIES_INFO[pet.species];
+  const age = typeof pet.ageYears === "number" ? pet.ageYears : 2;
+  const size = 12 + Math.min(age, 10) * 1.5; // старша тварина - більша рибка
+  const amp = 8 + Math.random() * 14;
+  return {
+    x: size + Math.random() * (AQUARIUM_W - size * 2),
+    baseY: amp + size + Math.random() * (AQUARIUM_H - 2 * (amp + size)),
+    amp: amp,
+    wave: 0.015 + Math.random() * 0.02, // «частота» синусоїди, рад/піксель
+    phase: Math.random() * Math.PI * 2,
+    speed: 30 + Math.random() * 50, // піксель/секунду
+    dir: Math.random() < 0.5 ? 1 : -1,
+    size: size,
+    color: SPECIES_COLORS[info.cls],
+  };
+}
+
+// Приводить набір рибок у відповідність до поточного масиву тварин
+function syncFish() {
+  const pets = petsApp.pets.slice(0, MAX_FISH);
+  const ids = new Set(pets.map((pet) => pet.id));
+
+  for (const pet of pets) {
+    if (!fishById.has(pet.id)) {
+      fishById.set(pet.id, createFish(pet));
+    }
+  }
+  for (const id of fishById.keys()) {
+    if (!ids.has(id)) {
+      fishById.delete(id);
+    }
+  }
+}
+
+// Оновлення стану: dt у секундах, тому швидкість не залежить від частоти кадрів
+function updateFish(dt) {
+  for (const fish of fishById.values()) {
+    fish.x += fish.dir * fish.speed * dt;
+
+    if (fish.x > AQUARIUM_W - fish.size) {
+      fish.x = AQUARIUM_W - fish.size;
+      fish.dir = -1;
+    } else if (fish.x < fish.size) {
+      fish.x = fish.size;
+      fish.dir = 1;
+    }
+  }
+}
+
+// Малює одну рибку: тіло-еліпс, хвіст-трикутник, око
+function drawFish(fish) {
+  const y = fish.baseY + fish.amp * Math.sin(fish.phase + fish.x * fish.wave);
+  // Нахил за похідною синусоїди, щоб рибка «пливла» вздовж кривої
+  const slope =
+    fish.amp * fish.wave * Math.cos(fish.phase + fish.x * fish.wave);
+  const s = fish.size;
+
+  ctx.save(); // збереження системи координат: трансформації не «протікають» у наступні кадри
+  ctx.translate(fish.x, y);
+  ctx.scale(fish.dir, 1); // дзеркалимо, коли рибка пливе вліво
+  ctx.rotate(Math.atan(slope * fish.dir));
+
+  ctx.fillStyle = fish.color;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, s, s * 0.55, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(-s * 0.8, 0);
+  ctx.lineTo(-s * 1.5, -s * 0.45);
+  ctx.lineTo(-s * 1.5, s * 0.45);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(s * 0.5, -s * 0.12, s * 0.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#2b3a1a";
+  ctx.beginPath();
+  ctx.arc(s * 0.55, -s * 0.12, s * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// Малює повний кадр: очищення, фон-вода, рибки, підпис
+function drawAquarium() {
+  ctx.clearRect(0, 0, AQUARIUM_W, AQUARIUM_H); // без цього нові кадри накладалися б на попередні
+
+  const water = ctx.createLinearGradient(0, 0, 0, AQUARIUM_H);
+  water.addColorStop(0, "#d8f0f7");
+  water.addColorStop(1, "#8cc6d8");
+  ctx.fillStyle = water;
+  ctx.fillRect(0, 0, AQUARIUM_W, AQUARIUM_H);
+
+  for (const fish of fishById.values()) {
+    drawFish(fish);
+  }
+
+  ctx.fillStyle = "rgba(43, 58, 26, 0.85)";
+  ctx.font = "bold 16px Nunito, system-ui, sans-serif";
+  ctx.textBaseline = "top";
+  if (fishById.size === 0) {
+    ctx.fillText("Акваріум порожній: у каталозі немає тварин", 16, 14);
+  } else {
+    ctx.fillText(`Рибок: ${fishById.size}`, 16, 14);
+  }
+}
+
+// Цикл анімації: оновити стан -> перемалювати кадр -> запросити наступний
+function aquariumFrame(time) {
+  if (lastFrameTime === null) lastFrameTime = time;
+  // Обмежуємо dt, щоб після повернення на вкладку рибки не «телепортувались»
+  const dt = Math.min((time - lastFrameTime) / 1000, 0.05);
+  lastFrameTime = time;
+
+  syncFish();
+  updateFish(dt);
+  drawAquarium();
+
+  aquariumFrameId = requestAnimationFrame(aquariumFrame);
+}
+
+function startAquarium() {
+  if (aquariumFrameId !== null) return;
+  lastFrameTime = null;
+  aquariumFrameId = requestAnimationFrame(aquariumFrame);
+}
+
+function stopAquarium() {
+  if (aquariumFrameId === null) return;
+  cancelAnimationFrame(aquariumFrameId);
+  aquariumFrameId = null;
+}
+
+// Анімація працює, лише якщо користувач не поставив паузу і canvas видно на екрані
+function updateAquarium() {
+  if (!userPaused && aquariumInView) {
+    startAquarium();
+  } else {
+    stopAquarium();
+  }
+}
+
+aquariumToggle.textContent = userPaused ? "Старт" : "Пауза";
+aquariumToggle.addEventListener("click", () => {
+  userPaused = !userPaused;
+  aquariumToggle.textContent = userPaused ? "Старт" : "Пауза";
+  updateAquarium();
+});
+
+// Зупиняємо цикл, коли акваріум прокручено за межі екрана
+if ("IntersectionObserver" in window) {
+  new IntersectionObserver((entries) => {
+    aquariumInView = entries[0].isIntersecting;
+    updateAquarium();
+  }).observe(aquariumCanvas);
+} else {
+  updateAquarium();
+}
+
+// Один початковий кадр, щоб canvas не був порожнім, навіть якщо анімація на паузі
+syncFish();
+drawAquarium();

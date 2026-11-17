@@ -409,7 +409,8 @@ main section h2 {
 }
 
 /* Практична 9: клієнт для API */
-#random-dog button {
+#random-dog button,
+#aquarium button {
   padding: 10px 24px;
   border: 0;
   border-radius: var(--radius-pill);
@@ -421,7 +422,8 @@ main section h2 {
   cursor: pointer;
 }
 
-#random-dog button:hover:not(:disabled) {
+#random-dog button:hover:not(:disabled),
+#aquarium button:hover:not(:disabled) {
   background-color: var(--green);
 }
 
@@ -486,6 +488,18 @@ main section h2 {
 .remove-btn:hover {
   background-color: #9b2c1a;
   color: #fff;
+}
+
+/* Практична 12: Canvas-акваріум */
+#aquarium canvas {
+  display: block;
+  width: 100%;
+  max-width: 800px;
+  height: auto;
+  margin-top: 16px;
+  border: 3px solid var(--green);
+  border-radius: var(--radius-box);
+  background-color: #cfe9f1;
 }
 
 aside {
