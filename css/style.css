@@ -502,6 +502,39 @@ main section h2 {
   background-color: #cfe9f1;
 }
 
+/* Практична 13: маршрути (посилання «Детальніше», «Назад», сторінка 404) */
+.details-link,
+.back-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.route-note {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.not-found {
+  padding: 24px;
+  border: 2px dashed var(--green);
+  border-radius: var(--radius-box);
+  background-color: #f2f7e9;
+}
+
+.not-found h3 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: var(--fs-h3);
+  color: var(--green-dark);
+}
+
+#app .detail-grid {
+  grid-template-columns: minmax(0, 420px);
+}
+
 aside {
   align-self: start;
   margin: 0 0 40px;

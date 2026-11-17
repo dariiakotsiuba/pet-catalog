@@ -15,17 +15,21 @@
          Підключається без defer, тому до запуску script.js Vue вже доступний. -->
     <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.js"></script>
     <script src="script.js" defer></script>
+    <!-- Практична 13: роутер підключається ПІСЛЯ script.js (потрібні petsApp, SPECIES_INFO) -->
+    <script src="router.js" defer></script>
   </head>
   <body>
     <header>
       <h1>Каталог тварин</h1>
+      <!-- Практична 13: посилання ведуть на маршрути hash-роутера -->
       <nav>
-        <a href="#cats">Коти</a>
-        <a href="#dogs">Собаки</a>
-        <a href="#fish">Риби</a>
-        <a href="#birds">Папуги</a>
-        <a href="#rodents">Хом'яки</a>
-        <a href="#reptiles">Черепахи</a>
+        <a href="#/">Усі</a>
+        <a href="#/species/cat">Коти</a>
+        <a href="#/species/dog">Собаки</a>
+        <a href="#/species/fish">Риби</a>
+        <a href="#/species/bird">Папуги</a>
+        <a href="#/species/rodent">Хом'яки</a>
+        <a href="#/species/reptile">Черепахи</a>
       </nav>
     </header>
 
@@ -136,10 +140,10 @@
         <section id="animals">
           <h2>Тварини</h2>
           <p class="hint">Клік по картці додає тварину в обране.</p>
-          <!-- Практична 10: сюди монтується Vue-застосунок PetsCatalog.
-               Лічильник і сітку карток рендерить Vue (шаблон у script.js),
-               тому статичні картки-заглушки з практикуму 2 прибрано. -->
-          <div id="pets-app">
+          <!-- Практична 13: єдиний контейнер усіх «сторінок» SPA.
+               Сюди монтується Vue-застосунок PetsCatalog, а роутер (router.js)
+               перемикає в ньому список, сторінку деталей і сторінку «Не знайдено». -->
+          <div id="app">
             <p>Завантаження каталогу…</p>
           </div>
         </section>

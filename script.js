@@ -2,6 +2,8 @@
 // звичайний HTML, а зміни масиву (push, присвоєння) Vue відстежує сам.
 // Практична 11: дані зберігаються в IndexedDB (з одноразовою міграцією з localStorage).
 // Практична 12: Canvas-акваріум, кількість рибок залежить від кількості тварин у каталозі.
+// Практична 13: SPA-маршрутизація (router.js). PetsCatalog тепер малює різні «сторінки»
+// залежно від page: список, деталі однієї тварини, «Не знайдено».
 
 // Перевірка підключення файлу
 console.log("script.js підключено");
@@ -254,6 +256,7 @@ async function migrateFromLocalStorage() {
 // до глобальних змінних напряму.
 // Подія варіанта: клік по картці перемикає ЛОКАЛЬНИЙ прапорець isFavorite.
 // Практична 11: removable + подія remove - кнопка «Видалити» (видаляє батько).
+// Практична 13: petId - якщо заданий, на картці є посилання «Детальніше» на #/pets/:id.
 const PetCard = {
   name: "PetCard",
   props: {
@@ -265,6 +268,7 @@ const PetCard = {
     info: { type: Object, required: true },
     youngLimit: { type: Number, default: 2 },
     removable: { type: Boolean, default: false },
+    petId: { type: Number, default: null },
   },
   emits: ["remove"],
   data() {
@@ -297,7 +301,7 @@ const PetCard = {
     },
   },
   // Бейдж «★ Обране» - третя «пігулка» в card-meta, щоб його не перекривало фото.
-  // @click.stop і @keydown.stop на кнопці не дають події дійти до <article>.
+  // @click.stop і @keydown.stop на кнопці й посиланні не дають події дійти до <article>.
   template: `
     <article
       class="animal-card"
@@ -316,6 +320,15 @@ const PetCard = {
       <img :src="imgSrc" :alt="altText" />
       <h3>{{ name }}</h3>
       <p>{{ text }}</p>
+      <div>
+        <a
+          v-if="petId !== null"
+          class="details-link"
+          :href="'#/pets/' + petId"
+          @click.stop
+          @keydown.stop
+        >Детальніше</a>
+      </div>
       <button
         v-if="removable"
         type="button"
@@ -329,6 +342,8 @@ const PetCard = {
 
 // ===== Практична 10: батьківський застосунок PetsCatalog =====
 // Практична 11: масив тварин заповнюється з IndexedDB у mounted() -> init().
+// Практична 13: застосунок змонтовано в #app; поле page перемикає роутер (router.js):
+//   { name: "list" } | { name: "detail", id } | { name: "notfound" }
 const petsApp = Vue.createApp({
   name: "PetsCatalog",
   components: { PetCard },
@@ -338,6 +353,8 @@ const petsApp = Vue.createApp({
       dbError: "",
       speciesFilter: "all",
       sizeFilter: "all",
+      page: { name: "list" },
+      loaded: false, // чи вже прочитано дані з IndexedDB
     };
   },
   computed: {
@@ -352,18 +369,17 @@ const petsApp = Vue.createApp({
         return speciesOk && sizeOk;
       });
     },
-    // id для навігації (#cats, #dogs…) отримує лише перша картка кожного виду
-    anchorIds() {
-      const ids = {};
-      const used = new Set();
-      for (const pet of this.filteredPets) {
-        const anchor = SPECIES_INFO[pet.species].anchor;
-        if (!used.has(anchor)) {
-          used.add(anchor);
-          ids[pet.id] = anchor;
-        }
+    // Практична 13: тварина для маршруту /pets/:id (undefined, якщо такого id немає)
+    currentPet() {
+      return this.pets.find((pet) => pet.id === this.page.id);
+    },
+    // Яку «сторінку» показувати. Деталі без даних: loading, а потім detail або notfound
+    view() {
+      if (this.page.name === "detail") {
+        if (!this.loaded) return "loading";
+        return this.currentPet ? "detail" : "notfound";
       }
-      return ids;
+      return this.page.name;
     },
   },
   mounted() {
@@ -384,6 +400,7 @@ const petsApp = Vue.createApp({
         this.dbError = "Не вдалося відкрити IndexedDB. Зміни не збережуться.";
         this.pets = DEFAULT_PETS.map((pet) => ({ ...pet }));
       }
+      this.loaded = true;
 
       // Виклики з практикуму 6 - тепер, коли дані вже завантажені
       printAll(this.pets);
@@ -405,6 +422,8 @@ const petsApp = Vue.createApp({
       // Скидаємо фільтри, щоб новий запис точно було видно
       this.speciesFilter = "all";
       this.sizeFilter = "all";
+      // Практична 13: повертаємось на головну, щоб адреса відповідала списку
+      navigate("/");
     },
     // Видалення: з IndexedDB і зі списку на екрані
     async removePet(id) {
@@ -412,6 +431,8 @@ const petsApp = Vue.createApp({
         await deleteItem(id);
         this.pets = this.pets.filter((pet) => pet.id !== id);
         this.dbError = "";
+        // Практична 13: зі сторінки деталей повертаємось до списку
+        if (this.page.name === "detail") navigate("/");
       } catch (error) {
         console.error(error);
         this.dbError = "Не вдалося видалити тварину.";
@@ -420,26 +441,59 @@ const petsApp = Vue.createApp({
   },
   // v-for з обов'язковим :key за унікальним id
   template: `
-    <p id="pets-count">Показано: {{ filteredPets.length }} з {{ pets.length }}</p>
     <p v-if="dbError" class="error" role="alert">{{ dbError }}</p>
-    <div class="animal-grid" id="pets-list">
-      <PetCard
-        v-for="pet in filteredPets"
-        :key="pet.id"
-        :id="anchorIds[pet.id]"
-        :name="pet.name"
-        :species="pet.species"
-        :age-years="pet.ageYears"
-        :img="pet.photoUrl"
-        :description="pet.notes"
-        :info="infoFor(pet.species)"
-        :young-limit="${YOUNG_LIMIT_YEARS}"
-        removable
-        @remove="removePet(pet.id)"
-      />
+
+    <template v-if="view === 'list'">
+      <p id="pets-count">Показано: {{ filteredPets.length }} з {{ pets.length }}</p>
+      <p v-if="speciesFilter !== 'all'" class="route-note">
+        Фільтр за видом. <a href="#/">Показати всіх</a>
+      </p>
+      <div class="animal-grid" id="pets-list">
+        <PetCard
+          v-for="pet in filteredPets"
+          :key="pet.id"
+          :pet-id="pet.id"
+          :name="pet.name"
+          :species="pet.species"
+          :age-years="pet.ageYears"
+          :img="pet.photoUrl"
+          :description="pet.notes"
+          :info="infoFor(pet.species)"
+          :young-limit="${YOUNG_LIMIT_YEARS}"
+          removable
+          @remove="removePet(pet.id)"
+        />
+      </div>
+    </template>
+
+    <div v-else-if="view === 'detail'">
+      <p><a class="back-link" href="#/">← До списку</a></p>
+      <div class="animal-grid detail-grid">
+        <PetCard
+          :key="currentPet.id"
+          :name="currentPet.name"
+          :species="currentPet.species"
+          :age-years="currentPet.ageYears"
+          :img="currentPet.photoUrl"
+          :description="currentPet.notes"
+          :info="infoFor(currentPet.species)"
+          :young-limit="${YOUNG_LIMIT_YEARS}"
+          removable
+          @remove="removePet(currentPet.id)"
+        />
+      </div>
+      <p class="route-note">Вік: {{ currentPet.ageYears }} р.</p>
+    </div>
+
+    <p v-else-if="view === 'loading'">Завантаження…</p>
+
+    <div v-else class="not-found">
+      <h3>Не знайдено</h3>
+      <p>Такої сторінки або тварини немає.</p>
+      <a class="back-link" href="#/">На головну</a>
     </div>
   `,
-}).mount("#pets-app");
+}).mount("#app");
 
 // Крок 7. Ручний рендер із практикуму 7 (функція renderPets: createElement,
 // innerHTML = "", append, видалення заглушок через querySelectorAll + remove)
@@ -496,10 +550,13 @@ const notesInput = document.querySelector("#pet-notes");
 // Форма фільтрів не має надсилатися як звичайна форма
 filtersForm.addEventListener("submit", (event) => event.preventDefault());
 
-// Друга подія варіанта: change на select. Тепер вона лише змінює реактивний
-// стан Vue - список перемальовується автоматично.
+// Друга подія варіанта: change на select.
+// Практична 13: вид тепер змінюється через роутер (/species/:species), тому
+// адреса, список і select завжди збігаються. Розмір, як і раніше, - стан Vue.
 speciesSelect.addEventListener("change", () => {
-  petsApp.speciesFilter = speciesSelect.value;
+  navigate(
+    speciesSelect.value === "all" ? "/" : "/species/" + speciesSelect.value,
+  );
 });
 sizeSelect.addEventListener("change", () => {
   petsApp.sizeFilter = sizeSelect.value;
